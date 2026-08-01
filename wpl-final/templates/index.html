@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cricket Win-Probability Dashboard</title>
+<style>
+  :root{
+    --bg:#f7f8fa; --card:#ffffff; --line:rgba(22,26,34,0.13);
+    --ink:#161a22; --ink-dim:#565f6e; --amber:#b8791f; --green:#2e7d32; --red:#c0392b;
+  }
+  *{box-sizing:border-box;}
+  body{ margin:0; background:var(--bg); color:var(--ink); font-family:-apple-system,Segoe UI,Inter,sans-serif; padding:40px 20px; }
+  .wrap{ max-width:760px; margin:0 auto; }
+  h1{ font-size:24px; margin-bottom:4px; }
+  h2.section{ font-size:16px; margin:36px 0 12px; }
+  p.sub{ color:var(--ink-dim); margin-top:0; font-size:14px; }
+  .tabs{ display:flex; gap:8px; margin:24px 0; }
+  .tab{ padding:8px 16px; border:1px solid var(--line); border-radius:6px; background:var(--card); cursor:pointer; font-size:14px; }
+  .tab.active{ background:var(--ink); color:#fff; border-color:var(--ink); }
+  .panel{ display:none; background:var(--card); border:1px solid var(--line); border-radius:8px; padding:24px; }
+  .panel.active{ display:block; }
+  .field{ margin-bottom:14px; }
+  label{ display:block; font-size:13px; color:var(--ink-dim); margin-bottom:4px; }
+  input, select{ width:100%; padding:8px 10px; border:1px solid var(--line); border-radius:5px; font-size:14px; }
+  button{ margin-top:10px; padding:10px 18px; background:var(--amber); color:#fff; border:none; border-radius:6px; font-size:14px; cursor:pointer; }
+  button:hover{ opacity:0.9; }
+  button.secondary{ background:var(--card); color:var(--ink); border:1px solid var(--line); }
+  .result{ margin-top:20px; padding:16px; border-radius:6px; background:var(--bg); border:1px solid var(--line); display:none; }
+  .bar-row{ display:flex; align-items:center; gap:10px; margin:6px 0; font-size:13px; }
+  .bar-track{ flex:1; height:10px; border-radius:5px; background:#e5e7eb; overflow:hidden; }
+  .bar-fill{ height:100%; background:var(--green); }
+  .error{ color:var(--red); font-size:13px; margin-top:10px; }
+  .grid2{ display:grid; grid-template-columns:1fr 1fr; gap:0 14px; }
+  table{ width:100%; border-collapse:collapse; font-size:12.5px; background:var(--card); border:1px solid var(--line); border-radius:8px; overflow:hidden; }
+  th, td{ text-align:left; padding:8px 10px; border-bottom:1px solid var(--line); }
+  th{ color:var(--ink-dim); font-weight:500; }
+  tr:last-child td{ border-bottom:none; }
+  .empty{ color:var(--ink-dim); font-size:13px; padding:14px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Cricket Win-Probability Dashboard</h1>
+  <p class="sub">Pre-match and live models served from <code>/api/prematch-predict</code> and <code>/api/live-predict</code>. Every prediction is logged to the database.</p>
+
+  <div class="tabs">
+    <div class="tab active" data-tab="prematch">Pre-match</div>
+    <div class="tab" data-tab="live">Live</div>
+  </div>
+
+  <div class="panel active" id="prematch">
+    <div class="grid2">
+      <div class="field"><label>Win rate diff (last 5)</label><input id="win_rate_diff" type="number" step="0.01" value="0.10"></div>
+      <div class="field"><label>Win rate diff (last 10)</label><input id="win_rate_diff_10" type="number" step="0.01" value="0.05"></div>
+      <div class="field"><label>Venue win rate diff</label><input id="venue_win_rate_diff" type="number" step="0.01" value="0.05"></div>
+      <div class="field"><label>Head-to-head win rate</label><input id="h2h_win_rate_diff" type="number" step="0.01" value="0.60"></div>
+      <div class="field"><label>Venue experience</label><input id="venue_exp" type="number" value="5"></div>
+      <div class="field"><label>Toss won by Team A?</label>
+        <select id="toss_won_by_A"><option value="1">Yes</option><option value="0">No</option></select>
+      </div>
+      <div class="field"><label>Toss choice (1 = bat first)</label>
+        <select id="toss_choice"><option value="1">Bat</option><option value="0">Field</option></select>
+      </div>
+    </div>
+    <button onclick="predictPrematch()">Predict</button>
+    <div class="result" id="prematch-result"></div>
+  </div>
+
+  <div class="panel" id="live">
+    <div class="grid2">
+      <div class="field"><label>Innings</label><input id="innings" type="number" value="2"></div>
+      <div class="field"><label>Target</label><input id="target" type="number" value="166"></div>
+      <div class="field"><label>Cumulative runs</label><input id="cum_runs" type="number" value="142"></div>
+      <div class="field"><label>Cumulative wickets</label><input id="cum_wickets" type="number" value="4"></div>
+      <div class="field"><label>Balls faced</label><input id="balls_faced" type="number" value="108"></div>
+      <div class="field"><label>Runs in last 6 overs</label><input id="runs_last_6_overs" type="number" value="48"></div>
+    </div>
+    <button onclick="predictLive()">Predict</button>
+    <div class="result" id="live-result"></div>
+  </div>
+
+  <h2 class="section">Recent predictions <button class="secondary" style="margin-left:8px;padding:4px 10px;font-size:12px;" onclick="loadHistory()">Refresh</button></h2>
+  <div id="history-wrap"><div class="empty">No predictions logged yet — try one above.</div></div>
+</div>
+
+<script>
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById(tab.dataset.tab).classList.add('active');
+  });
+});
+
+function val(id){ return parseFloat(document.getElementById(id).value); }
+
+async function predictPrematch(){
+  const payload = {
+    win_rate_diff: val('win_rate_diff'),
+    win_rate_diff_10: val('win_rate_diff_10'),
+    venue_win_rate_diff: val('venue_win_rate_diff'),
+    h2h_win_rate_diff: val('h2h_win_rate_diff'),
+    venue_exp: val('venue_exp'),
+    toss_won_by_A: val('toss_won_by_A'),
+    toss_choice: val('toss_choice')
+  };
+  const box = document.getElementById('prematch-result');
+  box.style.display = 'block';
+  box.innerHTML = 'Loading…';
+  try{
+    const res = await fetch('/api/prematch-predict', {
+      method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if(!data.success){ box.innerHTML = `<div class="error">${data.error}</div>`; return; }
+    box.innerHTML = `
+      <div class="bar-row"><span style="width:70px">Team A</span><div class="bar-track"><div class="bar-fill" style="width:${data.team_a_prob}%"></div></div><span>${data.team_a_prob}%</span></div>
+      <div class="bar-row"><span style="width:70px">Team B</span><div class="bar-track"><div class="bar-fill" style="width:${data.team_b_prob}%"></div></div><span>${data.team_b_prob}%</span></div>`;
+    loadHistory();
+  }catch(e){
+    box.innerHTML = `<div class="error">Request failed: ${e}</div>`;
+  }
+}
+
+async function predictLive(){
+  const payload = {
+    innings: val('innings'),
+    target: val('target'),
+    cum_runs: val('cum_runs'),
+    cum_wickets: val('cum_wickets'),
+    balls_faced: val('balls_faced'),
+    runs_last_6_overs: val('runs_last_6_overs')
+  };
+  const box = document.getElementById('live-result');
+  box.style.display = 'block';
+  box.innerHTML = 'Loading…';
+  try{
+    const res = await fetch('/api/live-predict', {
+      method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if(!data.success){ box.innerHTML = `<div class="error">${data.error}</div>`; return; }
+    box.innerHTML = `
+      <div class="bar-row"><span style="width:70px">Batting</span><div class="bar-track"><div class="bar-fill" style="width:${data.batting_win_prob}%"></div></div><span>${data.batting_win_prob}%</span></div>
+      <div class="bar-row"><span style="width:70px">Bowling</span><div class="bar-track"><div class="bar-fill" style="width:${data.bowling_win_prob}%"></div></div><span>${data.bowling_win_prob}%</span></div>
+      <div style="margin-top:10px;font-size:12px;color:var(--ink-dim)">
+        Current RR: ${data.match_state.current_rr} · Required RR: ${data.match_state.required_rr} · RR diff: ${data.match_state.rr_diff}
+      </div>`;
+    loadHistory();
+  }catch(e){
+    box.innerHTML = `<div class="error">Request failed: ${e}</div>`;
+  }
+}
+
+async function loadHistory(){
+  const wrap = document.getElementById('history-wrap');
+  try{
+    const res = await fetch('/api/history?limit=10');
+    const data = await res.json();
+    if(!data.predictions || data.predictions.length === 0){
+      wrap.innerHTML = '<div class="empty">No predictions logged yet — try one above.</div>';
+      return;
+    }
+    const rows = data.predictions.map(p => {
+      const t = new Date(p.created_at).toLocaleTimeString();
+      const prob = p.response.batting_win_prob ?? p.response.team_a_prob ?? '—';
+      return `<tr><td>${t}</td><td>${p.endpoint}</td><td>${prob}%</td><td>${p.latency_ms ?? '—'} ms</td></tr>`;
+    }).join('');
+    wrap.innerHTML = `<table><thead><tr><th>Time</th><th>Endpoint</th><th>Result</th><th>Latency</th></tr></thead><tbody>${rows}</tbody></table>`;
+  }catch(e){
+    wrap.innerHTML = `<div class="error">Could not load history: ${e}</div>`;
+  }
+}
+
+loadHistory();
+</script>
+</body>
+</html>
