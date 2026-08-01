@@ -185,6 +185,4 @@ Python · Flask · scikit-learn · Pandas · NumPy · CricAPI
 - Live predictions depend on accurate real-time match state; the CricAPI integration is a convenience layer and not required to use the core `/api/live-predict` endpoint.
 - Models were trained on historical Cricsheet data and have not been validated on live in-season data yet — treat outputs as directional, not authoritative.
 
-## License
 
-MIT — see [LICENSE](LICENSE).
