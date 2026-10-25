@@ -1,0 +1,12 @@
+{
+  "all_female_json_20261025.zip": {
+    "bytes": 21350091,
+    "downloaded_utc": "2026-10-25T16:32:11+00:00",
+    "file": "all_female_json_20261025.zip",
+    "hf_path": "snapshots/all_female_json_20261025.zip",
+    "hf_repo": "riksss/wpl-cricsheet-snapshots",
+    "hf_revision": "4ac682ecd07beef4b61e5d4c2e93c5c6ab3b767d",
+    "sha256": "f727da133fca20499a9fe5815f7111c3e42d129049c5f79cb4b0434f3db7cee4",
+    "source_url": "https://cricsheet.org/downloads/all_female_json.zip"
+  }
+}
