@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cricket Win-Probability Dashboard</title>
+<style>
+  :root{
+    --bg:#f7f8fa; --card:#ffffff; --line:rgba(22,26,34,0.13);
+    --ink:#161a22; --ink-dim:#565f6e; --amber:#b8791f; --green:#2e7d32; --red:#c0392b;
+  }
+  *{box-sizing:border-box;}
+  body{ margin:0; background:var(--bg); color:var(--ink); font-family:-apple-system,Segoe UI,Inter,sans-serif; padding:40px 20px; }
+  .wrap{ max-width:760px; margin:0 auto; }
+  h1{ font-size:24px; margin-bottom:4px; }
+  h2.section{ font-size:16px; margin:36px 0 12px; }
+  p.sub{ color:var(--ink-dim); margin-top:0; font-size:14px; }
+  .tabs{ display:flex; gap:8px; margin:24px 0; }
+  .tab{ padding:8px 16px; border:1px solid var(--line); border-radius:6px; background:var(--card); cursor:pointer; font-size:14px; }
+  .tab.active{ background:var(--ink); color:#fff; border-color:var(--ink); }
+  .panel{ display:none; background:var(--card); border:1px solid var(--line); border-radius:8px; padding:24px; }
+  .panel.active{ display:block; }
+  .field{ margin-bottom:14px; }
+  label{ display:block; font-size:13px; color:var(--ink-dim); margin-bottom:4px; }
+  input, select{ width:100%; padding:8px 10px; border:1px solid var(--line); border-radius:5px; font-size:14px; }
+  button{ margin-top:10px; padding:10px 18px; background:var(--amber); color:#fff; border:none; border-radius:6px; font-size:14px; cursor:pointer; }
+  button:hover{ opacity:0.9; }
+  button.secondary{ background:var(--card); color:var(--ink); border:1px solid var(--line); }
+  .result{ margin-top:20px; padding:16px; border-radius:6px; background:var(--bg); border:1px solid var(--line); display:none; }
+  .bar-row{ display:flex; align-items:center; gap:10px; margin:6px 0; font-size:13px; }
+  .bar-track{ flex:1; height:10px; border-radius:5px; background:#e5e7eb; overflow:hidden; }
+  .bar-fill{ height:100%; background:var(--green); }
+  .error{ color:var(--red); font-size:13px; margin-top:10px; }
+  .grid2{ display:grid; grid-template-columns:1fr 1fr; gap:0 14px; }
+  table{ width:100%; border-collapse:collapse; font-size:12.5px; background:var(--card); border:1px solid var(--line); border-radius:8px; overflow:hidden; }
+  th, td{ text-align:left; padding:8px 10px; border-bottom:1px solid var(--line); }
+  th{ color:var(--ink-dim); font-weight:500; }
+  tr:last-child td{ border-bottom:none; }
+  .empty{ color:var(--ink-dim); font-size:13px; padding:14px; }
+  .pad{ display:grid; grid-template-columns:repeat(6,1fr); gap:6px; margin:8px 0; }
+  .pad button{ margin:0; padding:10px 0; background:var(--card); color:var(--ink); border:1px solid var(--line); }
+  .pad button.w{ background:var(--red); color:#fff; border-color:var(--red); }
+  .pad button.x{ background:#eef0f3; }
+  .score{ font-size:22px; font-weight:600; margin:6px 0; }
+  .hist{ font-family:ui-monospace,Menlo,monospace; font-size:12px; color:var(--ink-dim); word-break:break-all; min-height:18px; }
+  svg.chart{ width:100%; height:140px; background:var(--bg); border:1px solid var(--line); border-radius:6px; margin-top:10px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Cricket Win-Probability Dashboard</h1>
+  <p class="sub">Pre-match and live models served from <code>/api/prematch-predict</code> and <code>/api/live-predict</code>. Every prediction is logged to the database. Model details: <a href="/api/model-info">/api/model-info</a>.</p>
+
+  <div class="tabs">
+    <div class="tab active" data-tab="prematch">Pre-match</div>
+    <div class="tab" data-tab="live">Live</div>
+  </div>
+
+  <div class="panel active" id="prematch">
+    <p class="sub">After the toss, before ball 1. Probability that the team batting first wins.</p>
+    <div class="grid2">
+      <div class="field"><label>Team batting first</label><select id="bat_first_team"></select></div>
+      <div class="field"><label>Chasing team</label><select id="chase_team"></select></div>
+      <div class="field"><label>Toss won by</label>
+        <select id="toss_winner"><option value="bat_first">Team batting first</option><option value="chase">Chasing team</option></select>
+      </div>
+    </div>
+    <button onclick="predictPrematch()">Predict</button>
+    <div class="result" id="prematch-result"></div>
+  </div>
+
+  <div class="panel" id="live">
+    <p class="sub">Enter the current innings ball by ball. The server computes the state (score, recent runs and wickets, partnership) from this history.</p>
+    <div class="grid2">
+      <div class="field"><label>Innings</label><select id="innings" onchange="resetBalls()"><option value="1">1</option><option value="2" selected>2</option></select></div>
+      <div class="field"><label>Target (innings 2)</label><input id="target" type="number" value="166"></div>
+      <div class="field"><label>Balls available (120 unless reduced)</label><input id="max_balls" type="number" value="120"></div>
+    </div>
+    <div class="pad">
+      <button onclick="addBall(0)">0</button><button onclick="addBall(1)">1</button><button onclick="addBall(2)">2</button>
+      <button onclick="addBall(3)">3</button><button onclick="addBall(4)">4</button><button onclick="addBall(6)">6</button>
+      <button class="x" onclick="addBall(1,false)">Wd</button><button class="x" onclick="addBall(1,false)">Nb</button>
+      <button class="w" onclick="addBall(0,true,1)">W</button><button class="x" onclick="addBall(1,true,1)">W+1</button>
+      <button class="x" onclick="undoBall()">Undo</button><button class="x" onclick="resetBalls()">Reset</button>
+    </div>
+    <div class="score" id="score">0/0 (0.0 ov)</div>
+    <div class="hist" id="hist"></div>
+    <div class="result" id="live-result"></div>
+    <svg class="chart" id="chart" viewBox="0 0 400 140" preserveAspectRatio="none"></svg>
+  </div>
+
+  <h2 class="section">Recent predictions <button class="secondary" style="margin-left:8px;padding:4px 10px;font-size:12px;" onclick="loadHistory()">Refresh</button></h2>
+  <div id="history-wrap"><div class="empty">No predictions logged yet — try one above.</div></div>
+</div>
+
+<script>
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById(tab.dataset.tab).classList.add('active');
+  });
+});
+
+function val(id){ return parseFloat(document.getElementById(id).value); }
+
+function bar(label, pct){
+  return `<div class="bar-row"><span style="width:150px">${label}</span><div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div><span>${pct}%</span></div>`;
+}
+function showError(box, data){
+  const d = data.details ? `<pre style="white-space:pre-wrap;font-size:12px">${JSON.stringify(data.details, null, 1)}</pre>` : '';
+  box.innerHTML = `<div class="error">${data.error}</div>${d}`;
+}
+
+async function loadTeams(){
+  try{
+    const data = await (await fetch('/api/model-info')).json();
+    const teams = (data.prematch && data.prematch.teams) || [];
+    ['bat_first_team','chase_team'].forEach((id, k) => {
+      const sel = document.getElementById(id);
+      sel.innerHTML = teams.map(t => `<option>${t}</option>`).join('');
+      if (teams.length > 1) sel.selectedIndex = k;
+    });
+  }catch(e){}
+}
+
+async function predictPrematch(){
+  const bf = document.getElementById('bat_first_team').value, ch = document.getElementById('chase_team').value;
+  const payload = { bat_first_team: bf, chase_team: ch,
+    toss_winner: document.getElementById('toss_winner').value === 'bat_first' ? bf : ch };
+  const box = document.getElementById('prematch-result');
+  box.style.display = 'block'; box.innerHTML = 'Loading…';
+  try{
+    const data = await (await fetch('/api/prematch-predict', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)})).json();
+    if(!data.success){ showError(box, data); return; }
+    box.innerHTML = bar(bf + ' (bat first)', data.bat_first_win_prob) + bar(ch + ' (chase)', data.chasing_win_prob) +
+      (data.model.note ? `<div style="margin-top:10px;font-size:12px;color:var(--ink-dim)">${data.model.note}</div>` : '');
+    loadHistory();
+  }catch(e){ box.innerHTML = `<div class="error">Request failed: ${e}</div>`; }
+}
+
+// ---- live: ball history ----
+let balls = [], probs = [];
+function addBall(runs, legal = true, wickets = 0){ balls.push({runs, legal, wickets}); predictLive(); }
+function undoBall(){ balls.pop(); probs.pop(); probs.pop(); predictLive(); }
+function resetBalls(){ balls = []; probs = []; drawChart(); document.getElementById('hist').textContent = '';
+  document.getElementById('score').textContent = '0/0 (0.0 ov)'; document.getElementById('live-result').style.display = 'none'; }
+function ballLabel(b){ return b.wickets ? (b.runs ? `W+${b.runs}` : 'W') : (b.legal ? String(b.runs) : 'wd'); }
+
+function drawChart(){
+  const svg = document.getElementById('chart'), n = Math.max(probs.length - 1, 1);
+  const pts = probs.map((p, i) => `${(i / n) * 400},${140 - p * 1.4}`).join(' ');
+  svg.innerHTML = `<line x1="0" y1="70" x2="400" y2="70" stroke="#c9ced6" stroke-dasharray="4 4"/>` +
+    (probs.length ? `<polyline points="${pts}" fill="none" stroke="#b8791f" stroke-width="2" vector-effect="non-scaling-stroke"/>` : '') +
+    `<text x="4" y="12" font-size="10" fill="#565f6e">P(team batting first wins)</text>`;
+}
+
+async function predictLive(){
+  const innings = parseInt(document.getElementById('innings').value);
+  const payload = { innings, balls, max_balls: val('max_balls') };
+  if (innings === 2) payload.target = val('target');
+  const box = document.getElementById('live-result');
+  box.style.display = 'block';
+  document.getElementById('hist').textContent = balls.map(ballLabel).join(' ');
+  try{
+    const data = await (await fetch('/api/live-predict', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)})).json();
+    if(!data.success){ showError(box, data); balls.pop(); return; }
+    const s = data.score, ms = data.match_state;
+    document.getElementById('score').textContent = `${s.runs}/${s.wickets} (${s.overs} ov)`;
+    const extra = innings === 2
+      ? `Need ${ms.runs_needed} off ${ms.balls_remaining} · RRR ${ms.required_rr} · last 5 ov: ${ms.runs_last_30}/${ms.wkts_last_30} · partnership ${ms.partnership_runs} (${ms.partnership_balls})`
+      : `RR ${ms.current_rr} · projected ${ms.projected_total} · last 5 ov: ${ms.runs_last_30}/${ms.wkts_last_30} · partnership ${ms.partnership_runs} (${ms.partnership_balls})`;
+    box.innerHTML = bar('Team batting first', data.bat_first_win_prob) + bar('Chasing team', data.chasing_win_prob) +
+      `<div style="margin-top:10px;font-size:12px;color:var(--ink-dim)">${extra}<br>Model ${data.model.version}: ${data.model.family}</div>`;
+    probs.push(data.bat_first_win_prob / 100); drawChart();
+    loadHistory();
+  }catch(e){ box.innerHTML = `<div class="error">Request failed: ${e}</div>`; }
+}
+
+async function loadHistory(){
+  const wrap = document.getElementById('history-wrap');
+  try{
+    const res = await fetch('/api/history?limit=10');
+    const data = await res.json();
+    if(!data.predictions || data.predictions.length === 0){
+      wrap.innerHTML = '<div class="empty">No predictions logged yet — try one above.</div>';
+      return;
+    }
+    const rows = data.predictions.map(p => {
+      const t = new Date(p.created_at).toLocaleTimeString();
+      const prob = p.response.bat_first_win_prob ?? p.response.batting_win_prob ?? p.response.team_a_prob ?? '—';
+      return `<tr><td>${t}</td><td>${p.endpoint}</td><td>${prob}%</td><td>${p.latency_ms ?? '—'} ms</td></tr>`;
+    }).join('');
+    wrap.innerHTML = `<table><thead><tr><th>Time</th><th>Endpoint</th><th>P(bat first wins)</th><th>Latency</th></tr></thead><tbody>${rows}</tbody></table>`;
+  }catch(e){
+    wrap.innerHTML = `<div class="error">Could not load history: ${e}</div>`;
+  }
+}
+
+loadTeams();
+drawChart();
+loadHistory();
+</script>
+</body>
+</html>

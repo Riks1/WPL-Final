@@ -1,0 +1,12 @@
+# Serving only (Docker / Hugging Face Space). Models are plain JSON (written by the training
+# notebook, step 8), so the app needs no scikit-learn and no pickle.
+Flask==3.0.0
+Flask-SQLAlchemy==3.1.1
+marshmallow==3.22.0
+python-dotenv==1.0.1
+numpy==2.1.3
+pandas==2.2.3
+scipy==1.14.1
+requests==2.32.3
+Werkzeug==3.0.1
+gunicorn==23.0.0

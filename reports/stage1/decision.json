@@ -1,0 +1,37 @@
+{
+  "rule": "parscore_baseline",
+  "live": "parscore",
+  "live_tests": {
+    "logistic": {
+      "a": "logistic",
+      "b": "parscore",
+      "delta": 0.046912412679569915,
+      "ci_low": -0.02294570244616701,
+      "ci_high": 0.11767862316344112
+    },
+    "rf": {
+      "a": "rf",
+      "b": "parscore",
+      "delta": 0.12444126406244016,
+      "ci_low": 0.04534125858722087,
+      "ci_high": 0.20793441105892083
+    }
+  },
+  "prematch": "base_rate",
+  "prematch_test": {
+    "a": "logistic",
+    "b": "base_rate",
+    "delta": 0.06590833703492327,
+    "ci_low": 0.001364548794785173,
+    "ci_high": 0.1352706484882581
+  },
+  "season_rates_chi2": {
+    "chi2": 2.4194070080862535,
+    "df": 3,
+    "p": 0.4900322388690701
+  },
+  "snapshot": "wpl_json_20261025.zip",
+  "snapshot_sha256": "533e7937056b47f169418b06d995ca85b193415390e750964e0a22982a07e6cc",
+  "n_boot": 2000,
+  "seed": 0
+}

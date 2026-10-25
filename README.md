@@ -1,188 +1,87 @@
-# WPL-Final
-# Live Cricket Win-Probability System (WPL)
+---
+title: WPL Win Probability
+sdk: docker
+app_port: 7860
+---
 
-A ball-by-ball win-probability model for T20 cricket, served through a Flask API. Two models cover the two phases of a match: a pre-match model that estimates win probability before a ball is bowled, and a live model that updates it continuously as the match progresses.
+# WPL Decision Engine: live win probability (stage 1 of 10)
 
-![CI](https://github.com/Riks1/live-cricket-win-probability/actions/workflows/ci.yml/badge.svg)
-![status](https://img.shields.io/badge/status-active-brightgreen?style=flat-square)
-![python](https://img.shields.io/badge/python-3.10%2B-blue?style=flat-square)
-![license](https://img.shields.io/badge/license-MIT-lightgrey?style=flat-square)
+![CI](https://github.com/Riks1/WPL-Final/actions/workflows/ci.yml/badge.svg)
 
-## Overview
+Ball-by-ball win probability for the Women's Premier League, served by a Flask API on a Hugging Face Space.
+Stage 1 rebuilt the project from an audit of the original version (v0). Every number below comes from
+`notebooks/stage1_training.ipynb` on the snapshot `data/snapshots/wpl_json_20261025.zip`
+(sha256 `533e7937056b47f1…`); the full report is in `reports/stage1/results.md`.
 
-Predicting match outcomes from a fixed pre-match snapshot is a different problem from predicting them mid-innings, where run rate, wickets in hand, and required rate shift the picture ball by ball. This project treats the two as separate modelling problems with separate pipelines, so training and real-time inference stay consistent with each other, and evaluates both on probability quality (log-loss, calibration) rather than raw classification accuracy — a model that is right 70% of the time but always says "90%" is worse than one that says "55%" honestly.
+**Label.** P(team batting first wins). A tie decided by a super over counts for the super-over winner; no-results are excluded.
 
-The serving layer is built as a proper Flask application factory with a layered architecture (routes → services → models), a database that logs every prediction for auditability, structured logging, environment-driven configuration, and a validated API surface — rather than a single script.
+## Results (66 held-out matches)
 
-## Architecture
+Rolling-origin evaluation by season: train on every season before S, test on S (2024, 2025, 2026).
+95% intervals come from a bootstrap over matches, paired across models.
 
-```mermaid
-flowchart TD
-    Client["Browser dashboard / API client"] -->|HTTP| Routes
+| Model | Log-loss per match [95% CI] | Δ vs base rate [95% CI] | Brier |
+|---|---|---|---|
+| Base rate | 0.703 [0.633, 0.770] | 0 | 0.254 |
+| **Par-score: DLS resource curve + negative binomial (deployed)** | **0.528 [0.428, 0.633]** | **−0.175 [−0.286, −0.059]** | **0.179** |
+| Same curve, Poisson noise (reference) | 0.663 [0.472, 0.874] | −0.040 [−0.235, 0.178] | 0.190 |
+| Logistic regression, per innings | 0.575 [0.453, 0.717] | −0.128 [−0.243, 0.002] | 0.190 |
+| Random forest, per innings | 0.652 [0.512, 0.814] | −0.050 [−0.185, 0.101] | 0.208 |
 
-    subgraph Flask App
-        Routes["Routes (blueprints)\npredict · health · history · cricapi · main"]
-        Schemas["Schemas\nmarshmallow validation"]
-        Services["Services\nprematch.py · live.py\n(feature engineering + inference)"]
-        Registry["ModelRegistry\n(loads .pkl models once at startup)"]
-        DB[("SQLite / PredictionLog\nvia SQLAlchemy")]
-        Logging["Rotating file + console logs"]
-    end
+- **Deployment rule, fixed before the final run:** the par-score model is deployed unless a learned model beats
+  it with a paired 95% CI excluding 0. Logistic − par-score = +0.047 [−0.023, +0.118]; random forest − par-score =
+  +0.124 [+0.045, +0.208]. So the 5-parameter par-score model is deployed.
+- **No post-hoc calibrator.** Fitted on earlier seasons only, Platt (+0.060 [+0.006, +0.116]) and isotonic
+  (+0.082 [+0.023, +0.144]) made the par-score model worse; temperature scaling changed nothing (+0.004 [−0.031, +0.037]).
+  Season-to-season differences in how often the team batting first wins are consistent with noise
+  (7, 11, 7 and 10 of 22; χ² = 2.42, p = 0.49).
+- **Pre-match information did not help.** A post-toss model (form, head-to-head, toss) scored worse than the base rate
+  (+0.066 [+0.001, +0.135]), so `/api/prematch-predict` serves the base rate and says so in its response.
 
-    Routes --> Schemas
-    Schemas --> Services
-    Services --> Registry
-    Routes -->|logs every prediction| DB
-    Routes -.-> Logging
-    Registry -->|reads at startup| Models[("prematch_model.pkl\nlive_model.pkl")]
+## What the audit found in v0
 
-    CricAPI["CricAPI (external)"] -.->|live match state| Routes
-```
+Reproducible with `python -m legacy.audit_v0 --snapshot data/snapshots/wpl_json_20261025.zip`.
 
-**Request flow:** a client hits a route → the payload is validated against a marshmallow schema (bad input never reaches the model) → the relevant service engineers features and calls the trained model → the route logs the request/response/latency to SQLite → the response is returned. Errors raised anywhere in that chain are caught centrally and returned as consistent JSON.
+1. The pre-match "73.8% accuracy" equalled the majority-class rate: the model predicted the same class for every test match.
+2. The live model never saw the target: `target`, `runs_needed` and `required_rr` were 0 on every training row.
+3. The live "log-loss 0.652" leaked: cross-validation split ball rows, so every match was in train and validation.
+4. The deployed live model received unscaled inputs (it was trained on standardised ones), giving ~51–53% for both won and lost chases.
+5. `class_weight='balanced'` distorted the probabilities.
 
-## Methodology
-
-**Pre-match model**
-- Logistic Regression, tuned via `GridSearchCV`
-- Features: recent win-rate differential (5 and 10 matches), venue win-rate differential, head-to-head win-rate, venue experience, toss outcome, and toss choice
-- Selected for interpretability and stability on a small, high-variance pre-match feature set
-
-**Live model**
-- Random Forest classifier, retrained on ball-by-ball match state
-- Features: innings, cumulative runs/wickets, wickets and balls remaining, current and required run rate, run-rate differential, runs in the last 6 overs, and phase-of-innings flags (powerplay / middle overs / death overs)
-- Derived features (run rate, required run rate, resources remaining) are computed live in the API from raw match state, so the client only needs to send basic scorecard values
-
-## Results
-
-| Model | Metric | Score |
-|---|---|---|
-| Pre-match (Logistic Regression) | Test accuracy | 73.8% |
-| Pre-match (Logistic Regression) | Test AUC | 0.586 |
-| Live (Random Forest) | Log-loss | 0.652 |
-
-The pre-match model's modest AUC reflects a genuinely hard problem: T20 outcomes before a ball is bowled are close to a coin flip, and the model is deliberately not overfit to noise in a small pre-match feature set. The live model is evaluated on log-loss rather than accuracy, since a live win-probability tracker is judged on how well-calibrated its probabilities are as the match state evolves, not just whether it picks the eventual winner.
-
-## Data & persistence
-
-Every prediction served by `/api/prematch-predict` and `/api/live-predict` is logged to a `prediction_logs` table (SQLite by default, swappable for Postgres via `DATABASE_URL`) with the request payload, response, and latency. `/api/history` reads it back — this is what backs the "Recent predictions" panel on the dashboard, and gives a real audit trail rather than a stateless demo.
-
-## Validation & error handling
-
-Input is validated with marshmallow schemas (`app/schemas.py`) before it ever reaches a model — invalid types or out-of-range values (e.g. `cum_wickets: 15`) return a `400` with field-level detail instead of failing deep inside a prediction call. All errors funnel through a single set of handlers (`app/errors.py`) so the API always returns a consistent `{"success": false, "error": ...}` shape.
+Design decisions and their evidence: `docs/DECISIONS.md`.
 
 ## API
 
 | Endpoint | Method | Description |
 |---|---|---|
-| `/api/prematch-predict` | POST | Win probability from pre-match features |
-| `/api/live-predict` | POST | Win probability from current match state |
-| `/api/cricapi-live/<match_id>` | GET | Fetches a live match from CricAPI and returns a live prediction |
-| `/api/history?limit=20` | GET | Recent logged predictions (from the database) |
+| `/api/live-predict` | POST | Win probability from the ball history of the current innings |
+| `/api/prematch-predict` | POST | After the toss, before ball 1 (currently the base rate) |
+| `/api/model-info` | GET | Model card: data hash, training date, library versions, deployment decision |
+| `/api/history` | GET | Recent logged predictions |
 | `/api/health` | GET | Model load status |
 
-Example request to `/api/live-predict`:
 ```json
-{
-  "cum_runs": 142,
-  "cum_wickets": 4,
-  "balls_faced": 108,
-  "target": 166
-}
+POST /api/live-predict
+{"innings": 2, "target": 166,
+ "balls": [{"runs": 4, "legal": true, "wickets": 0}, {"runs": 1, "legal": false, "wickets": 0}]}
 ```
+`runs` is the total off the delivery including extras; `legal` is false for wides and no-balls; `wickets` counts
+dismissals (retired hurt is 0). The server computes the score, recent runs and wickets (last 30 legal balls)
+and the current partnership with the same code as the training notebook. `tests/test_parity_fixture.py`
+checks the API reproduces the notebook's probabilities on 200 real match states.
 
-Example request to `/api/prematch-predict`:
-```json
-{
-  "win_rate_diff": 0.10,
-  "win_rate_diff_10": 0.05,
-  "venue_win_rate_diff": 0.05,
-  "h2h_win_rate_diff": 0.60,
-  "venue_exp": 5,
-  "toss_won_by_A": 1,
-  "toss_choice": 1
-}
-```
+## Reproduce
 
-A minimal dashboard at `/` lets you try both endpoints from the browser without writing any requests by hand.
+- **Training and evaluation:** open `notebooks/stage1_training.ipynb` in Colab and run all. It verifies the snapshot hash.
+- **App and tests:** `pip install -r requirements-dev.txt && pytest -v`, then `python run.py`.
 
-## Repository structure
+## Limitations
 
-```
-.
-├── app/
-│   ├── __init__.py             # application factory (config, DB, blueprints, model loading)
-│   ├── config.py                # env-var driven config (Config / TestConfig)
-│   ├── extensions.py            # SQLAlchemy instance
-│   ├── models.py                 # PredictionLog DB model
-│   ├── schemas.py                 # marshmallow request validation
-│   ├── errors.py                   # custom exceptions + centralized JSON error handlers
-│   ├── logging_config.py            # rotating file + console logging
-│   ├── services/
-│   │   ├── model_loader.py           # loads the two .pkl models once, at startup
-│   │   ├── prematch.py                 # pre-match prediction logic
-│   │   └── live.py                      # live prediction logic + feature engineering
-│   └── routes/
-│       ├── main.py                       # dashboard page
-│       ├── predict.py                     # /api/prematch-predict, /api/live-predict
-│       ├── health.py                       # /api/health
-│       ├── history.py                       # /api/history
-│       └── cricapi.py                        # /api/cricapi-live/<id>
-├── templates/
-│   └── index.html                # dashboard: prediction forms + live history table
-├── tests/
-│   ├── conftest.py                 # app/client fixtures (in-memory DB, real models)
-│   └── test_app.py                  # 11 tests: validation, predictions, history, edge cases
-├── .github/workflows/ci.yml    # runs the test suite on every push/PR
-├── prematch_model.pkl
-├── live_model.pkl
-├── run.py                      # entrypoint
-├── requirements.txt
-├── requirements-dev.txt
-├── Dockerfile
-├── .env.example
-└── README.md
-```
+- No team, player or venue information in the live model yet (stage 3).
+- WPL only: about 22 matches per season, so intervals are wide. Seasons 2023–25 were also used during development,
+  so the genuinely independent test of the deployment rule is WPL 2027.
+- The prediction log is stored on the Space's temporary disk and is lost on restart.
 
-## How to run
+## License
 
-```bash
-git clone https://github.com/Riks1/live-cricket-win-probability.git
-cd live-cricket-win-probability
-pip install -r requirements.txt
-
-# optional: for the live CricAPI integration
-cp .env.example .env   # then add your own CricAPI key
-
-python run.py
-```
-
-The app runs at `http://localhost:5000`. Open it in a browser for the dashboard, or hit the endpoints directly.
-
-### With Docker
-
-```bash
-docker build -t win-probability .
-docker run -p 5000:5000 win-probability
-```
-
-## Testing
-
-```bash
-pip install -r requirements-dev.txt
-pytest -v
-```
-
-Tests load the real pickled models and exercise the actual application factory (`create_app`) against an in-memory database — including validation failures, edge cases like zero overs bowled, and confirming predictions are correctly logged and retrievable via `/api/history` — rather than mocking predictions. CI runs this suite on every push via GitHub Actions.
-
-## Tech stack
-
-Python · Flask · scikit-learn · Pandas · NumPy · CricAPI
-
-## Notes / limitations
-
-- The pre-match model's low AUC is an honest reflection of how little signal exists before a match starts; it is intentionally not tuned past that ceiling.
-- Live predictions depend on accurate real-time match state; the CricAPI integration is a convenience layer and not required to use the core `/api/live-predict` endpoint.
-- Models were trained on historical Cricsheet data and have not been validated on live in-season data yet — treat outputs as directional, not authoritative.
-
-
+MIT, see [LICENSE](LICENSE).
