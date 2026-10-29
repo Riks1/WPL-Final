@@ -1,3 +1,9 @@
+import os, sys
+sys.path.insert(0, os.path.dirname(__file__))        # lets tests import helpers like _factory
+import os, sys
+sys.path.insert(0, os.path.dirname(__file__))        # lets tests import helpers like _factory
+import os, sys
+sys.path.insert(0, os.path.dirname(__file__))        # lets tests import helpers like _factory
 import os
 import sys
 

@@ -1,0 +1,4 @@
+# Stage 2 data build (Colab already has these). The serving app and CI tests do not need them.
+pyarrow==17.0.0
+huggingface_hub==0.26.2
+requests==2.32.3

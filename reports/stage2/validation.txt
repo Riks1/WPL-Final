@@ -1,0 +1,70 @@
+[ok ] duplicate delivery keys: 0
+[ok ] completed matches without exactly 2 innings: 0
+[ok ] awarded results still in the data: 0
+[ok ] innings with more than 10 wickets: 0
+[FLAG] innings with more legal balls than max_balls: 38
+match_id  innings  legal_balls  max_balls
+ 1090892        1          121        120
+ 1158355        1          121        120
+ 1161233        1          121        120
+ 1167286        2          121        120
+ 1167295        2           55         54
+ 1190605        1          121        120
+ 1190744        2          121        120
+ 1234031        1          121        120
+ 1234049        1          121        120
+ 1269092        1          121        120
+[FLAG] file target != innings-1 total + 1 (unreduced, no method): 2
+match_id       date    competition  total_1  target  target_overs
+ 1318395 2022-06-15 T20I associate       63    63.0          20.0
+ 1494140 2025-07-26 T20I associate      143   143.0          20.0
+[FLAG] winner disagrees with the scores: 1
+match_id       date    competition  total_1  total_2  target  winner
+ 1318383 2022-06-11 T20I associate       88       88    89.0 Nigeria
+[ok ]   ... of which in the model scope: 0
+[FLAG] overs with more than 6 legal balls: 62
+match_id  innings  over  legal
+ 1090892        1    17      7
+ 1152759        1    18      7
+ 1158355        1    19      7
+ 1161233        1    13      7
+ 1167286        2     9      7
+ 1167295        2     0      7
+ 1190605        1    14      7
+ 1190744        2     1      7
+ 1234031        1    14      7
+ 1234049        1    11      7
+[FLAG] bowlers with more than 24 legal balls in an innings: 35
+match_id  innings player_id  legal_balls_bowled
+ 1158355        1  5bb73a3c                  25
+ 1167286        2  efc40724                  25
+ 1179017        2  fa9fdefa                  26
+ 1190605        1  2dc78362                  25
+ 1234031        1  2817e17a                  25
+ 1269092        1  d7b754d4                  25
+ 1313203        1  a0fdf513                  25
+ 1331402        2  3da7a16e                  25
+ 1338043        2  ed840f44                  25
+ 1338058        1  ea9c54de                  25
+[FLAG] batting positions above 11: 2
+match_id  innings player_id  bat_pos
+ 1173070        2  237ec05b     12.0
+ 1411261        1  37f9eb59     12.0
+[ok ] deliveries whose batter is not in the batting XI: 0
+[ok ] deliveries whose bowler is not in the bowling XI: 0
+[FLAG] possible duplicate matches (same date, venue, teams): 92
+match_id       date                          venue               teams             competition
+  627008 2013-07-05              Haslegrave Ground (England, Pakistan) T20I other full members
+  627009 2013-07-05              Haslegrave Ground (England, Pakistan) T20I other full members
+ 1179610 2019-04-02     United Cricket Club Ground (Botswana, Namibia)          T20I associate
+ 1179611 2019-04-02     United Cricket Club Ground (Botswana, Namibia)          T20I associate
+ 1179017 2019-04-03     United Cricket Club Ground (Botswana, Namibia)          T20I associate
+ 1179018 2019-04-03     United Cricket Club Ground (Botswana, Namibia)          T20I associate
+ 1229205 2020-08-13         Seebarn Cricket Centre  (Austria, Germany)          T20I associate
+ 1229206 2020-08-13         Seebarn Cricket Centre  (Austria, Germany)          T20I associate
+ 1268747 2021-07-08 Bayer Uerdingen Cricket Ground   (France, Germany)          T20I associate
+ 1268748 2021-07-08 Bayer Uerdingen Cricket Ground   (France, Germany)          T20I associate
+[FLAG] team sheets != 11 not explained by a replacement: 2
+match_id         team  n  reps
+ 1146789   Supernovas 13   0.0
+ 1146789 Trailblazers 13   0.0

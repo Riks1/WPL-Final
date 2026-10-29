@@ -13,3 +13,4 @@ wpl_data/
 .vscode/
 .idea/
 data/snapshots/all_female_json_*.zip
+data/processed/

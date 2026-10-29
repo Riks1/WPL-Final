@@ -1,0 +1,85 @@
+{
+  "snapshot": "all_female_json_20261025b.zip",
+  "sha256": "0f5bb2ac113c4e60785bac4f16187b3b3148d6dfca8aee80e9f4921acbf8ac48",
+  "hf_revision": "28157ffb6fe546b9032c2a259a8d25d6325bb1d2",
+  "excluded": [
+    "1544610"
+  ],
+  "matches": 3508,
+  "model_scope": 272,
+  "ratings_scope": 1948,
+  "model_scope_by_competition": {
+    "T20I India": 171,
+    "Women's Premier League": 88,
+    "Women's T20 Challenge": 13
+  },
+  "main_deliveries": 799502,
+  "result_types": {
+    "win": 3408,
+    "no_result": 67,
+    "tie_super_over": 23,
+    "tie": 10
+  },
+  "players": 3418,
+  "on_field_not_in_team_sheet": 0,
+  "venues": 305,
+  "wpl_switches_by_season": {
+    "2024": 5,
+    "2025": 3,
+    "2026": 24
+  },
+  "checks": {
+    "dup_delivery_keys": 0,
+    "completed_without_2_innings": 0,
+    "awarded_not_excluded": 0,
+    "wickets_gt_10": 0,
+    "balls_over_max": 38,
+    "target_mismatch": 2,
+    "winner_vs_scores": 1,
+    "winner_vs_scores_model_scope": 0,
+    "overs_gt_6_legal": 62,
+    "bowler_gt_4_overs": 35,
+    "bat_pos_gt_11": 2,
+    "batter_not_in_xi": 0,
+    "bowler_not_in_xi": 0,
+    "duplicate_matches": 92,
+    "xi_not_11_unexplained": 2
+  },
+  "hard_failures": {},
+  "folds": {
+    "2024": {
+      "s_c": {
+        "T20I India": 0.976,
+        "Women's Premier League": 1.0,
+        "Women's T20 Challenge": 0.843
+      },
+      "matches": 152,
+      "effective_n": 100.4
+    },
+    "2025": {
+      "s_c": {
+        "T20I India": 0.993,
+        "Women's Premier League": 1.0,
+        "Women's T20 Challenge": 0.909
+      },
+      "matches": 195,
+      "effective_n": 130.7
+    },
+    "2026": {
+      "s_c": {
+        "T20I India": 0.983,
+        "Women's Premier League": 1.0,
+        "Women's T20 Challenge": 0.942
+      },
+      "matches": 227,
+      "effective_n": 148.3
+    }
+  },
+  "wpl_drift": {
+    "matches_compared": 88,
+    "only_in_stage1": [],
+    "only_in_new": [],
+    "changed_deliveries": 0,
+    "changed_matches": []
+  }
+}
