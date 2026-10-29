@@ -10,13 +10,13 @@
     "source_url": "https://cricsheet.org/downloads/all_female_json.zip"
   },
   "all_female_json_20261025b.zip": {
-    "bytes": 21350091,
+    "bytes": 21422206,
     "downloaded_utc": "2026-10-25T19:57:34+00:00",
     "file": "all_female_json_20261025b.zip",
     "hf_path": "snapshots/all_female_json_20261025b.zip",
     "hf_repo": "riksss/wpl-cricsheet-snapshots",
-    "hf_revision": "03ca9aa7f3666b7e943fcdfaffea0be9a026f5f9",
-    "sha256": "f727da133fca20499a9fe5815f7111c3e42d129049c5f79cb4b0434f3db7cee4",
+    "hf_revision": "28157ffb6fe546b9032c2a259a8d25d6325bb1d2",
+    "sha256": "0f5bb2ac113c4e60785bac4f16187b3b3148d6dfca8aee80e9f4921acbf8ac48",
     "source_url": "https://cricsheet.org/downloads/all_female_json.zip"
   },
   "wpl_json_20261025.zip": {
