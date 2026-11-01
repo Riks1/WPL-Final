@@ -62,7 +62,7 @@ def main(argv=None):
         pred, table, v = run(feats, comp)
         preds.append(pred)
         washed = feats[(feats.competition == comp) & (feats.result_type == 'no_result') & feats.season.isin(PM.TEST_SEASONS)]
-        results[label] = {'n_matches': len(pred), 'matches_by_season': pred.season.value_counts().sort_index().to_dict(),
+        results[label] = {'n_matches': len(pred), 'excluded_no_result': washed.match_id.tolist(), 'matches_by_season': pred.season.value_counts().sort_index().to_dict(),
                           'table': table.to_dict('records'), 'verdict_if_deciding': v}
         md += [f'## {comp} ({len(pred)} test matches){"" if label == "wpl" else " - supporting only, never decides"}',
                table.round(4).to_markdown(index=False),
