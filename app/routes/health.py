@@ -1,10 +1,14 @@
+import json
 from datetime import datetime, timezone
+from pathlib import Path
 
-from flask import Blueprint, jsonify
+from flask import Blueprint, current_app, jsonify
 
 from app.services.model_loader import model_registry
 
 health_bp = Blueprint("health", __name__, url_prefix="/api")
+BUILD_FILE = Path(__file__).resolve().parents[2] / "build_info.json"     # written by scripts/deploy_space.py
+BUILD = json.loads(BUILD_FILE.read_text()) if BUILD_FILE.exists() else {"sha": "local", "ref": "local"}
 
 
 @health_bp.route("/health")
@@ -17,6 +21,10 @@ def health():
             "model_version": model_registry.version,
             "versions": model_registry.versions,
             "ratings_loaded": model_registry.ratings is not None,
+            "build": BUILD,
+            # Startup result only: health is polled every 5 minutes, and querying the database here would keep
+            # Neon's free compute awake around the clock and exhaust its monthly allowance.
+            "database": current_app.config.get("DB_STATUS", "unknown"),
             "timestamp": datetime.now(timezone.utc).isoformat(),
         }
     )

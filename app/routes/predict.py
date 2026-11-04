@@ -15,7 +15,10 @@ predict_bp = Blueprint("predict", __name__, url_prefix="/api")
 
 
 def _log_prediction(endpoint, request_payload, response_payload, latency_ms):
-    """Best-effort logging — a DB hiccup should never break a prediction response."""
+    """Best-effort logging — a DB hiccup should never break a prediction response.
+    Requests sent by scripts/smoke_test.py carry X-Smoke-Test and are logged as smoke/<endpoint>."""
+    if request.headers.get("X-Smoke-Test"):
+        endpoint = f"smoke/{endpoint}"
     try:
         entry = PredictionLog(
             endpoint=endpoint,

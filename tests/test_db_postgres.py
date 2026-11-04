@@ -80,3 +80,12 @@ def test_api_call_is_logged_to_postgres():
             db.session.delete(r)
         db.session.commit()
     close(app)
+
+
+def test_api_starts_and_predicts_without_a_database():
+    class Down(TestConfig):
+        SQLALCHEMY_DATABASE_URI = "postgresql+psycopg://nobody@127.0.0.1:1/none?connect_timeout=2"
+    client = create_app(Down).test_client()
+    assert client.get("/api/health").get_json()["database"] == "unavailable at startup"
+    resp = client.post("/api/live-predict", json={"innings": 1, "balls": [{"runs": 1, "legal": True, "wickets": 0}]})
+    assert resp.status_code == 200 and resp.get_json()["success"]          # the prediction is served; the log is not

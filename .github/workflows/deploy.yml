@@ -1,0 +1,60 @@
+name: Deploy
+# A version tag (v*) deploys that tag to the Hugging Face Space, then smoke-tests the live URL.
+# Rollback: Actions -> Deploy -> Run workflow, with the previous good tag as `ref` (v3-rc1 or later: older
+# releases lack the Postgres driver the Space's DATABASE_URL now needs).
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Tag to deploy (use the previous good tag to roll back)
+        required: true
+concurrency:
+  group: deploy                      # never two deploys at once
+  cancel-in-progress: false
+env:
+  REF: ${{ inputs.ref || github.ref_name }}
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: wpl_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/wpl_test
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.REF }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - run: pip install -r requirements-dev.txt
+      - run: pytest -q
+  deploy:
+    needs: test                      # nothing is deployed unless the exact ref passed every test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.REF }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install huggingface_hub==0.26.2 requests==2.32.3
+      - name: Upload to the Space and wait for the build
+        env:
+          HF_TOKEN: ${{ secrets.HF_DEPLOY_TOKEN }}
+        run: python -m scripts.deploy_space --space "${{ vars.HF_SPACE }}" --ref "$REF" --sha "$(git rev-parse HEAD)"
+      - name: Smoke test the live URL
+        run: |
+          URL="https://$(echo '${{ vars.HF_SPACE }}' | tr '/_.' '---' | tr '[:upper:]' '[:lower:]').hf.space"
+          python -m scripts.smoke_test --url "$URL" --expect-sha "$(git rev-parse HEAD)"

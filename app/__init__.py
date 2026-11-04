@@ -39,7 +39,14 @@ def create_app(config_class=Config):
         # Blueprints above import app.models (PredictionLog), which registers it
         # with db.metadata — that import MUST happen before create_all(), or the
         # table silently never gets created.
-        db.create_all()
+        # If the database is unreachable (e.g. Neon paused), the API still starts: predictions do not need it,
+        # and logging is best-effort per request. /api/health reports the state.
+        try:
+            db.create_all()
+            app.config["DB_STATUS"] = "ok"
+        except Exception:
+            app.logger.exception("Database unavailable at startup; serving predictions without the log")
+            app.config["DB_STATUS"] = "unavailable at startup"
         if db.engine.dialect.name != "sqlite":
             db.engine.dispose()    # gunicorn --preload forks workers after this: they must not share its connections
         model_registry.load(model_dir=app.config["MODEL_DIR"], live_version=app.config["LIVE_VERSION"],
