@@ -1,87 +1,129 @@
----
-title: WPL Win Probability
-sdk: docker
-app_port: 7860
----
+# WPL Decision Engine
 
-# WPL Decision Engine: live win probability (stage 1 of 10)
+**Win probability for the Women's Premier League, built so that every number can be checked.**
 
-![CI](https://github.com/Riks1/WPL-Final/actions/workflows/ci.yml/badge.svg)
+[![CI](https://github.com/Riks1/WPL-Final/actions/workflows/ci.yml/badge.svg)](https://github.com/Riks1/WPL-Final/actions/workflows/ci.yml)
+![Python 3.12](https://img.shields.io/badge/python-3.12-blue)
+![Models: JSON, no pickle](https://img.shields.io/badge/models-JSON%2C%20no%20pickle-informative)
+[![License](https://img.shields.io/github/license/Riks1/WPL-Final)](LICENSE)
 
-Ball-by-ball win probability for the Women's Premier League, served by a Flask API on a Hugging Face Space.
-Stage 1 rebuilt the project from an audit of the original version (v0). Every number below comes from
-`notebooks/stage1_training.ipynb` on the snapshot `data/snapshots/wpl_json_20261025.zip`
-(sha256 `533e7937056b47f1…`); the full report is in `reports/stage1/results.md`.
+Ball-by-ball and pre-match win probability for women's T20 franchise cricket, served by a Flask API.
+The WPL plays 22 matches a season, so the hard part is not fitting a model but not fooling yourself:
+every model here is scored on held-out seasons, every interval comes from a bootstrap over matches,
+and every deployment decision follows a rule written down before the final run.
 
-**Label.** P(team batting first wins). A tie decided by a super over counts for the super-over winner; no-results are excluded.
+## Results at a glance
 
-## Results (66 held-out matches)
+All on 66 held-out WPL matches (2024–2026). Log-loss per match; Δ is paired against the stated baseline,
+95% bootstrap CI over matches. Lower is better.
 
-Rolling-origin evaluation by season: train on every season before S, test on S (2024, 2025, 2026).
-95% intervals come from a bootstrap over matches, paired across models.
-
-| Model | Log-loss per match [95% CI] | Δ vs base rate [95% CI] | Brier |
+| Question | Model | Result | Decision |
 |---|---|---|---|
-| Base rate | 0.703 [0.633, 0.770] | 0 | 0.254 |
-| **Par-score: DLS resource curve + negative binomial (deployed)** | **0.528 [0.428, 0.633]** | **−0.175 [−0.286, −0.059]** | **0.179** |
-| Same curve, Poisson noise (reference) | 0.663 [0.472, 0.874] | −0.040 [−0.235, 0.178] | 0.190 |
-| Logistic regression, per innings | 0.575 [0.453, 0.717] | −0.128 [−0.243, 0.002] | 0.190 |
-| Random forest, per innings | 0.652 [0.512, 0.814] | −0.050 [−0.185, 0.101] | 0.208 |
+| Live (ball by ball) | Par-score: DLS resource curve + negative binomial, 5 parameters | **0.528** vs base rate 0.703; Δ −0.175 [−0.286, −0.059] | **Deployed.** Logistic and random forest did not beat it |
+| Pre-match, team form | Logistic: form, head-to-head, toss | Δ +0.066 [+0.001, +0.135] vs base rate | Not deployed |
+| Pre-match, player ratings | Logistic: XI-strength margin + toss | Δ **+0.087 [+0.012, +0.162]** vs base rate | **Not deployed** (pre-specified rule) |
+| — same features, India T20Is | (supporting analysis, 53 matches) | Δ −0.203 [−0.312, −0.079] | Never decides |
 
-- **Deployment rule, fixed before the final run:** the par-score model is deployed unless a learned model beats
-  it with a paired 95% CI excluding 0. Logistic − par-score = +0.047 [−0.023, +0.118]; random forest − par-score =
-  +0.124 [+0.045, +0.208]. So the 5-parameter par-score model is deployed.
-- **No post-hoc calibrator.** Fitted on earlier seasons only, Platt (+0.060 [+0.006, +0.116]) and isotonic
-  (+0.082 [+0.023, +0.144]) made the par-score model worse; temperature scaling changed nothing (+0.004 [−0.031, +0.037]).
-  Season-to-season differences in how often the team batting first wins are consistent with noise
-  (7, 11, 7 and 10 of 22; χ² = 2.42, p = 0.49).
-- **Pre-match information did not help.** A post-toss model (form, head-to-head, toss) scored worse than the base rate
-  (+0.066 [+0.001, +0.135]), so `/api/prematch-predict` serves the base rate and says so in its response.
+The player ratings carry real signal: on India T20Is they cut log-loss by 0.20, and in the WPL the stronger
+XI still won 58% of test matches. They fail in the WPL because the strength-to-probability mapping is fitted
+on 22–66 matches; one 22-match training fold learned the wrong sign. That is the next stage's problem
+(pooled training, then a prospective test on WPL 2027). Details: [model card](docs/stage3/MODEL_CARD_prematch_v3.md).
 
-## What the audit found in v0
+## How it works
 
-Reproducible with `python -m legacy.audit_v0 --snapshot data/snapshots/wpl_json_20261025.zip`.
+```mermaid
+flowchart TB
+    A[Cricsheet ball-by-ball JSON] -->|frozen zip, SHA-256 in git| B[Snapshot registry]
+    B --> C[Stage 2 parser<br/>tidy tables: 3,508 matches,<br/>799,502 deliveries]
+    C --> D[As-of player ratings<br/>empirical Bayes, ball level]
+    D --> E[XI strength + venue prior<br/>per match and team]
+    E --> F[Rolling-origin evaluation<br/>paired bootstrap, fixed rule]
+    F --> G[Registry: JSON models<br/>+ model cards]
+    C --> H[Live par-score model]
+    H --> G
+    G --> I[Flask API<br/>Hugging Face Space]
+```
 
-1. The pre-match "73.8% accuracy" equalled the majority-class rate: the model predicted the same class for every test match.
-2. The live model never saw the target: `target`, `runs_needed` and `required_rr` were 0 on every training row.
-3. The live "log-loss 0.652" leaked: cross-validation split ball rows, so every match was in train and validation.
-4. The deployed live model received unscaled inputs (it was trained on standardised ones), giving ~51–53% for both won and lost chases.
-5. `class_weight='balanced'` distorted the probabilities.
+- **Data you can verify.** Every Cricsheet download is frozen, hashed and registered in
+  [`data/snapshots/registry.json`](data/snapshots/registry.json); the loader refuses a file whose hash does not match.
+- **Ratings that cannot see the future.** For a match on date *d*, a player's rating uses only deliveries before *d*.
+  Tests perturb future balls and check that no earlier rating moves ([`tests/test_ratings.py`](tests/test_ratings.py)).
+  Spec: [`docs/stage3/RATINGS_SPEC.md`](docs/stage3/RATINGS_SPEC.md).
+- **Decisions fixed in advance.** Stage 3's question, models, metric and deploy rule:
+  [`docs/stage3/PREREG_stage3.md`](docs/stage3/PREREG_stage3.md). The model card discloses that the git tag meant to
+  timestamp it was misplaced.
+- **What is served is what was tested.** Models are plain JSON keyed to the data hash; a parity test requires the API
+  to reproduce the training code's probabilities on 200 real match states.
 
-Design decisions and their evidence: `docs/DECISIONS.md`.
+## Where it started: auditing v0
+
+The first version reported 73.8% pre-match accuracy and a live log-loss of 0.652. Re-running its own code
+([`legacy/`](legacy/)) showed the accuracy was the majority-class rate (one class predicted for every match),
+the live model never saw the target, cross-validation leaked every match into training, and the deployed model
+received unscaled inputs. Stage 1 rebuilt everything from that audit.
+
+## Roadmap
+
+| Stage | Scope | Status |
+|---|---|---|
+| 1 | Audit of v0; live par-score model; parity-tested API; CI | ✅ [`v1`](https://github.com/Riks1/WPL-Final/tree/v1) |
+| 2 | Women's T20 data layer: snapshots, parser, entities, validation | ✅ [`v2`](https://github.com/Riks1/WPL-Final/tree/v2) |
+| 3 | As-of player ratings, XI strength, pre-specified pre-match evaluation | ✅ evaluation · 🚧 deployment (Postgres log, staging/prod, monitoring) |
+| 4 | Pooled training across competitions; prospective test on WPL 2027 | Planned |
+| 5–10 | From prediction to decisions (team selection, match strategy) | Planned |
 
 ## API
 
-| Endpoint | Method | Description |
+| Endpoint | Method | What it returns |
 |---|---|---|
 | `/api/live-predict` | POST | Win probability from the ball history of the current innings |
-| `/api/prematch-predict` | POST | After the toss, before ball 1 (currently the base rate) |
+| `/api/prematch-predict` | POST | After the toss, before ball 1 (currently the base rate, and the response says so) |
 | `/api/model-info` | GET | Model card: data hash, training date, library versions, deployment decision |
 | `/api/history` | GET | Recent logged predictions |
 | `/api/health` | GET | Model load status |
 
-```json
-POST /api/live-predict
-{"innings": 2, "target": 166,
- "balls": [{"runs": 4, "legal": true, "wickets": 0}, {"runs": 1, "legal": false, "wickets": 0}]}
+```bash
+curl -X POST <api-url>/api/live-predict -H 'Content-Type: application/json' \
+  -d '{"innings": 2, "target": 166, "balls": [{"runs": 4, "legal": true, "wickets": 0}, {"runs": 1, "legal": false, "wickets": 0}]}'
 ```
 `runs` is the total off the delivery including extras; `legal` is false for wides and no-balls; `wickets` counts
-dismissals (retired hurt is 0). The server computes the score, recent runs and wickets (last 30 legal balls)
-and the current partnership with the same code as the training notebook. `tests/test_parity_fixture.py`
-checks the API reproduces the notebook's probabilities on 200 real match states.
+dismissals. The server derives every feature with the same code as training.
 
 ## Reproduce
 
-- **Training and evaluation:** open `notebooks/stage1_training.ipynb` in Colab and run all. It verifies the snapshot hash.
-- **App and tests:** `pip install -r requirements-dev.txt && pytest -v`, then `python run.py`.
+```bash
+pip install -r requirements-dev.txt && pytest -q          # 93 tests: parsing, leakage, evaluation, API parity
+
+SNAP=all_female_json_20261025b.zip                        # fetched from Hugging Face and hash-checked
+python -m scripts.build_stage2 --snapshot $SNAP --wpl-snapshot wpl_json_20261025.zip
+python -m scripts.build_ratings --snapshot $SNAP
+python -m scripts.build_xi --snapshot $SNAP
+python -m scripts.evaluate_prematch --snapshot $SNAP
+python -m scripts.write_prematch_card --snapshot $SNAP
+```
+Stage 1 training and evaluation: [`notebooks/stage1_training.ipynb`](notebooks/stage1_training.ipynb).
+Rebuilt from scratch, the ratings reproduce the same content hash (`1e5c4bd4…`).
+
+## Repository map
+
+| Path | Contents |
+|---|---|
+| [`wpl/`](wpl/) | Library: parser and entities (`data/`), live features, par-score, ratings, XI strength, evaluation harness |
+| [`scripts/`](scripts/) | One command per build step (Stage 2 tables, ratings, XI features, evaluation, model card) |
+| [`app/`](app/) | Flask API: routes, schemas, services, prediction log |
+| [`models/`](models/) | Served models as JSON, model card, parity fixture |
+| [`reports/`](reports/) | Every reported number, by stage |
+| [`docs/`](docs/) | Pre-registration, ratings spec, model cards |
+| [`tests/`](tests/) | Unit, leakage and parity tests |
+| [`legacy/`](legacy/) | The v0 audit |
 
 ## Limitations
 
-- No team, player or venue information in the live model yet (stage 3).
-- WPL only: about 22 matches per season, so intervals are wide. Seasons 2023–25 were also used during development,
-  so the genuinely independent test of the deployment rule is WPL 2027.
-- The prediction log is stored on the Space's temporary disk and is lost on restart.
+- The WPL has 22 matches a season: evaluations can only detect log-loss gains of about 0.07 or more.
+- The 2024–2026 WPL matches were the test set in both Stage 1 and Stage 3; the genuinely fresh test is WPL 2027.
+- The live model uses no team, player or venue information yet.
+- Impact-player swaps are not modelled; Indian domestic cricket is absent, so uncapped players start at a debutant prior.
 
 ## License
 
-MIT, see [LICENSE](LICENSE).
+[MIT](LICENSE). Match data from [Cricsheet](https://cricsheet.org), under the Open Data Commons Attribution License.

@@ -1,0 +1,203 @@
+{
+  "snapshot": "all_female_json_20261025b.zip",
+  "ratings_content_hash": "1e5c4bd424cfdd6b6ff088a2250611eb77c0c8438aac6a16b73077d74c7abf59",
+  "lambda": 18.991559537722374,
+  "position_shares": [
+    0.1702,
+    0.1592,
+    0.1491,
+    0.1295,
+    0.1001,
+    0.0792,
+    0.0614,
+    0.0504,
+    0.0412,
+    0.0339,
+    0.0259
+  ],
+  "features_rows": 272,
+  "coverage": [
+    {
+      "competition": "T20I India",
+      "season": 2009,
+      "cov": 0.0,
+      "debut": 1.0
+    },
+    {
+      "competition": "T20I India",
+      "season": 2010,
+      "cov": 0.0,
+      "debut": 0.273
+    },
+    {
+      "competition": "T20I India",
+      "season": 2011,
+      "cov": 0.045,
+      "debut": 0.318
+    },
+    {
+      "competition": "T20I India",
+      "season": 2012,
+      "cov": 0.562,
+      "debut": 0.08
+    },
+    {
+      "competition": "T20I India",
+      "season": 2014,
+      "cov": 0.664,
+      "debut": 0.1
+    },
+    {
+      "competition": "T20I India",
+      "season": 2016,
+      "cov": 0.76,
+      "debut": 0.045
+    },
+    {
+      "competition": "T20I India",
+      "season": 2018,
+      "cov": 0.862,
+      "debut": 0.031
+    },
+    {
+      "competition": "T20I India",
+      "season": 2019,
+      "cov": 0.894,
+      "debut": 0.024
+    },
+    {
+      "competition": "T20I India",
+      "season": 2020,
+      "cov": 0.982,
+      "debut": 0.009
+    },
+    {
+      "competition": "T20I India",
+      "season": 2021,
+      "cov": 0.904,
+      "debut": 0.04
+    },
+    {
+      "competition": "T20I India",
+      "season": 2022,
+      "cov": 0.966,
+      "debut": 0.002
+    },
+    {
+      "competition": "T20I India",
+      "season": 2023,
+      "cov": 0.939,
+      "debut": 0.01
+    },
+    {
+      "competition": "T20I India",
+      "season": 2024,
+      "cov": 0.965,
+      "debut": 0.004
+    },
+    {
+      "competition": "T20I India",
+      "season": 2025,
+      "cov": 0.918,
+      "debut": 0.014
+    },
+    {
+      "competition": "T20I India",
+      "season": 2026,
+      "cov": 0.988,
+      "debut": 0.0
+    },
+    {
+      "competition": "Women's Premier League",
+      "season": 2023,
+      "cov": 0.814,
+      "debut": 0.05
+    },
+    {
+      "competition": "Women's Premier League",
+      "season": 2024,
+      "cov": 0.878,
+      "debut": 0.021
+    },
+    {
+      "competition": "Women's Premier League",
+      "season": 2025,
+      "cov": 0.86,
+      "debut": 0.021
+    },
+    {
+      "competition": "Women's Premier League",
+      "season": 2026,
+      "cov": 0.932,
+      "debut": 0.029
+    },
+    {
+      "competition": "Women's T20 Challenge",
+      "season": 2018,
+      "cov": 0.885,
+      "debut": 0.038
+    },
+    {
+      "competition": "Women's T20 Challenge",
+      "season": 2019,
+      "cov": 0.807,
+      "debut": 0.068
+    },
+    {
+      "competition": "Women's T20 Challenge",
+      "season": 2020,
+      "cov": 0.943,
+      "debut": 0.023
+    },
+    {
+      "competition": "Women's T20 Challenge",
+      "season": 2022,
+      "cov": 0.864,
+      "debut": 0.068
+    }
+  ],
+  "stability": [
+    {
+      "from": 2023,
+      "to": 2024,
+      "component": "bat_runs",
+      "players": 36,
+      "spearman": 0.889
+    },
+    {
+      "from": 2023,
+      "to": 2024,
+      "component": "bowl_runs",
+      "players": 30,
+      "spearman": 0.865
+    },
+    {
+      "from": 2024,
+      "to": 2025,
+      "component": "bat_runs",
+      "players": 33,
+      "spearman": 0.949
+    },
+    {
+      "from": 2024,
+      "to": 2025,
+      "component": "bowl_runs",
+      "players": 31,
+      "spearman": 0.779
+    },
+    {
+      "from": 2025,
+      "to": 2026,
+      "component": "bat_runs",
+      "players": 33,
+      "spearman": 0.97
+    },
+    {
+      "from": 2025,
+      "to": 2026,
+      "component": "bowl_runs",
+      "players": 28,
+      "spearman": 0.909
+    }
+  ]
+}

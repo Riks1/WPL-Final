@@ -1,0 +1,183 @@
+{
+  "question": "Do XI-strength features beat the base rate pre-match? (PREREG_stage3.md)",
+  "decision": {
+    "rule": "deploy primary iff the 95% CI upper bound of log-loss(primary) - log-loss(base_rate) < 0",
+    "delta": 0.08676564513718954,
+    "ci_low": 0.012286169256936421,
+    "ci_high": 0.16195326051157458,
+    "deploy_primary": false,
+    "serve": "base_rate"
+  },
+  "wpl": {
+    "n_matches": 66,
+    "excluded_no_result": [],
+    "matches_by_season": {
+      "2024": 22,
+      "2025": 22,
+      "2026": 22
+    },
+    "table": [
+      {
+        "model": "base_rate",
+        "log_loss": 0.7027011055788525,
+        "ci_low": 0.6327045876042707,
+        "ci_high": 0.7701868055767315,
+        "delta": 0.0,
+        "delta_ci_low": 0.0,
+        "delta_ci_high": 0.0,
+        "brier": 0.25397918579736795,
+        "ece": 0.1161616161616161,
+        "cal_slope": -1.7055449586602374,
+        "cal_intercept": 0.23395244391480777,
+        "accuracy": 0.5757575757575758
+      },
+      {
+        "model": "primary",
+        "log_loss": 0.789466750716042,
+        "ci_low": 0.6809960194119297,
+        "ci_high": 0.9009049472635183,
+        "delta": 0.08676564513718954,
+        "delta_ci_low": 0.012286169256936421,
+        "delta_ci_high": 0.16195326051157458,
+        "brier": 0.28252060034316395,
+        "ece": 0.17285450146994913,
+        "cal_slope": -0.791775248777821,
+        "cal_intercept": 0.1894242659400044,
+        "accuracy": 0.5303030303030303
+      },
+      {
+        "model": "s1",
+        "log_loss": 0.8256069837145482,
+        "ci_low": 0.7093628717917565,
+        "ci_high": 0.941698871351295,
+        "delta": 0.12290587813569576,
+        "delta_ci_low": 0.05483998486972305,
+        "delta_ci_high": 0.19655270762485155,
+        "brier": 0.3004458425465885,
+        "ece": 0.1979072486693609,
+        "cal_slope": -1.4569800120215688,
+        "cal_intercept": 0.26135272235858303,
+        "accuracy": 0.5303030303030303
+      },
+      {
+        "model": "s2",
+        "log_loss": 0.7903771682240467,
+        "ci_low": 0.6820785798809865,
+        "ci_high": 0.9031098404389079,
+        "delta": 0.08767606264519423,
+        "delta_ci_low": 0.01403448806902356,
+        "delta_ci_high": 0.16241865614194126,
+        "brier": 0.28324221108273684,
+        "ece": 0.1308083878507689,
+        "cal_slope": -0.8115166127012404,
+        "cal_intercept": 0.18728946623033685,
+        "accuracy": 0.5303030303030303
+      }
+    ],
+    "verdict_if_deciding": {
+      "rule": "deploy primary iff the 95% CI upper bound of log-loss(primary) - log-loss(base_rate) < 0",
+      "delta": 0.08676564513718954,
+      "ci_low": 0.012286169256936421,
+      "ci_high": 0.16195326051157458,
+      "deploy_primary": false,
+      "serve": "base_rate"
+    }
+  },
+  "india_t20i_supporting": {
+    "n_matches": 53,
+    "excluded_no_result": [
+      "1434292"
+    ],
+    "matches_by_season": {
+      "2024": 20,
+      "2025": 10,
+      "2026": 23
+    },
+    "table": [
+      {
+        "model": "base_rate",
+        "log_loss": 0.6935527225883711,
+        "ci_low": 0.6808655140555476,
+        "ci_high": 0.7062974216386535,
+        "delta": 0.0,
+        "delta_ci_low": 0.0,
+        "delta_ci_high": 0.0,
+        "brier": 0.2502022727929324,
+        "ece": 0.01450137422226594,
+        "cal_slope": -16.12415808087236,
+        "cal_intercept": 0.058074819704955594,
+        "accuracy": 0.5094339622641509
+      },
+      {
+        "model": "primary",
+        "log_loss": 0.49104151715336775,
+        "ci_low": 0.3804117511766692,
+        "ci_high": 0.6114362411061286,
+        "delta": -0.20251120543500334,
+        "delta_ci_low": -0.31150585834827327,
+        "delta_ci_high": -0.07874384859453837,
+        "brier": 0.1662816109128232,
+        "ece": 0.164388047403078,
+        "cal_slope": 1.1481583172798209,
+        "cal_intercept": 0.0347088915766446,
+        "accuracy": 0.7169811320754716
+      },
+      {
+        "model": "s1",
+        "log_loss": 0.5098313044531022,
+        "ci_low": 0.3934491418577726,
+        "ci_high": 0.6426606741324928,
+        "delta": -0.18372141813526888,
+        "delta_ci_low": -0.3018168727430006,
+        "delta_ci_high": -0.04957662952995803,
+        "brier": 0.17230140608070676,
+        "ece": 0.12736447794729167,
+        "cal_slope": 1.0463808211270476,
+        "cal_intercept": -0.1131124826464673,
+        "accuracy": 0.7169811320754716
+      },
+      {
+        "model": "s2",
+        "log_loss": 0.49273693007189645,
+        "ci_low": 0.38656877410017887,
+        "ci_high": 0.6072251300816894,
+        "delta": -0.20081579251647463,
+        "delta_ci_low": -0.30563646197529554,
+        "delta_ci_high": -0.08487495729471405,
+        "brier": 0.16453910847581305,
+        "ece": 0.13329629396695936,
+        "cal_slope": 1.259024744967834,
+        "cal_intercept": 0.016950365208805652,
+        "accuracy": 0.6981132075471698
+      }
+    ],
+    "verdict_if_deciding": {
+      "rule": "deploy primary iff the 95% CI upper bound of log-loss(primary) - log-loss(base_rate) < 0",
+      "delta": -0.20251120543500334,
+      "ci_low": -0.31150585834827327,
+      "ci_high": -0.07874384859453837,
+      "deploy_primary": true,
+      "serve": "primary"
+    }
+  },
+  "metadata": {
+    "snapshot": "all_female_json_20261025b.zip",
+    "snapshot_sha256": "0f5bb2ac113c4e60785bac4f16187b3b3148d6dfca8aee80e9f4921acbf8ac48",
+    "ratings_content_hash": "1e5c4bd424cfdd6b6ff088a2250611eb77c0c8438aac6a16b73077d74c7abf59",
+    "h": 4.0,
+    "prereg_tag_commit": "308c096b556c7a2bee4803e6830b78f3b3d8a873",
+    "docs_in_tag": false,
+    "docs_unchanged_since_tag": false,
+    "docs_first_committed": {
+      "docs/stage3/PREREG_stage3.md": "e39e0a3e259009f6bbf5363efd10a7699c89b41d 2026-11-01T17:11:07+00:00",
+      "docs/stage3/RATINGS_SPEC.md": "e39e0a3e259009f6bbf5363efd10a7699c89b41d 2026-11-01T17:11:07+00:00"
+    },
+    "docs_sha256": {
+      "docs/stage3/PREREG_stage3.md": "3b62451cd73ec4b9991aabc4162fe707b4d79c3102e7bf596cf8963907abd74b",
+      "docs/stage3/RATINGS_SPEC.md": "90ec09baabf530419c49b07c8b5574acb16b0bce21884e889ff54bfc78c8a7c6"
+    },
+    "head_commit": "22167d46ca372c6c7e6abf98d7adbd67a3bda944",
+    "n_boot": 2000,
+    "seed": 0
+  }
+}

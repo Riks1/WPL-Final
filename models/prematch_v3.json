@@ -1,0 +1,27 @@
+{
+  "kind": "prematch",
+  "family": "base_rate",
+  "version": "v3",
+  "p_base": 0.3977272727272727,
+  "n_matches": 88,
+  "seasons": [
+    2023,
+    2024,
+    2025,
+    2026
+  ],
+  "label": "P(team batting first wins); ties = 0.5; no-results excluded",
+  "decision": {
+    "rule": "deploy primary iff the 95% CI upper bound of log-loss(primary) - log-loss(base_rate) < 0",
+    "delta": 0.08676564513718954,
+    "ci_low": 0.012286169256936421,
+    "ci_high": 0.16195326051157458,
+    "deploy_primary": false,
+    "serve": "base_rate"
+  },
+  "snapshot": "all_female_json_20261025b.zip",
+  "snapshot_sha256": "0f5bb2ac113c4e60785bac4f16187b3b3148d6dfca8aee80e9f4921acbf8ac48",
+  "ratings_content_hash": "1e5c4bd424cfdd6b6ff088a2250611eb77c0c8438aac6a16b73077d74c7abf59",
+  "evaluation": "reports/stage3/prematch_results.json",
+  "created_utc": "2026-11-01T17:18:54+00:00"
+}
