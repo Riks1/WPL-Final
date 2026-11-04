@@ -4,13 +4,25 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
+def database_url(raw):
+    """Hosted Postgres (Neon) hands out postgres:// or postgresql:// URLs; SQLAlchemy needs the driver named,
+    and we use psycopg 3. Anything else (the local SQLite default) passes through unchanged."""
+    for prefix in ("postgres://", "postgresql://"):
+        if raw.startswith(prefix):
+            return "postgresql+psycopg://" + raw[len(prefix):]
+    return raw
+
+
 class Config:
     """Base config, driven by environment variables (see .env.example)."""
     SECRET_KEY = os.environ.get("SECRET_KEY", "dev-secret-key-change-in-production")
-    SQLALCHEMY_DATABASE_URI = os.environ.get(
-        "DATABASE_URL", f"sqlite:///{BASE_DIR / 'instance' / 'predictions.db'}"
+    SQLALCHEMY_DATABASE_URI = database_url(
+        os.environ.get("DATABASE_URL", f"sqlite:///{BASE_DIR / 'instance' / 'predictions.db'}")
     )
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    # Neon suspends idle compute after 5 minutes, which silently kills pooled connections: test each one before
+    # use, and never keep one longer than 4.5 minutes.
+    SQLALCHEMY_ENGINE_OPTIONS = {"pool_pre_ping": True, "pool_recycle": 270}
     CRICAPI_KEY = os.environ.get("CRICAPI_KEY")
     LOG_LEVEL = os.environ.get("LOG_LEVEL", "INFO")
     MODEL_DIR = os.environ.get("MODEL_DIR", str(BASE_DIR / "models"))

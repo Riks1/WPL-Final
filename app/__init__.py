@@ -40,6 +40,8 @@ def create_app(config_class=Config):
         # with db.metadata — that import MUST happen before create_all(), or the
         # table silently never gets created.
         db.create_all()
+        if db.engine.dialect.name != "sqlite":
+            db.engine.dispose()    # gunicorn --preload forks workers after this: they must not share its connections
         model_registry.load(model_dir=app.config["MODEL_DIR"], live_version=app.config["LIVE_VERSION"],
                             prematch_version=app.config["PREMATCH_VERSION"],
                             ratings_version=app.config["RATINGS_VERSION"])

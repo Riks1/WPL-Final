@@ -7,7 +7,9 @@
 ![Models: JSON, no pickle](https://img.shields.io/badge/models-JSON%2C%20no%20pickle-informative)
 [![License](https://img.shields.io/github/license/Riks1/WPL-Final)](LICENSE)
 
-Ball-by-ball and pre-match win probability for women's T20 franchise cricket, served by a Flask API.
+Ball-by-ball and pre-match win probability for women's T20 franchise cricket, served by a Flask API
+([live](https://huggingface.co/spaces/riksss/wpl-win-probability)). Technical report:
+[**Stages 1–3 (PDF)**](paper/wpl_stage1-3_report.pdf).
 The WPL plays 22 matches a season, so the hard part is not fitting a model but not fooling yourself:
 every model here is scored on held-out seasons, every interval comes from a bootstrap over matches,
 and every deployment decision follows a rule written down before the final run.
@@ -83,7 +85,7 @@ received unscaled inputs. Stage 1 rebuilt everything from that audit.
 | `/api/health` | GET | Model load status |
 
 ```bash
-curl -X POST <api-url>/api/live-predict -H 'Content-Type: application/json' \
+curl -X POST https://riksss-wpl-win-probability.hf.space/api/live-predict -H 'Content-Type: application/json' \
   -d '{"innings": 2, "target": 166, "balls": [{"runs": 4, "legal": true, "wickets": 0}, {"runs": 1, "legal": false, "wickets": 0}]}'
 ```
 `runs` is the total off the delivery including extras; `legal` is false for wides and no-balls; `wickets` counts
@@ -114,6 +116,7 @@ Rebuilt from scratch, the ratings reproduce the same content hash (`1e5c4bd4…`
 | [`models/`](models/) | Served models as JSON, model card, parity fixture |
 | [`reports/`](reports/) | Every reported number, by stage |
 | [`docs/`](docs/) | Pre-registration, ratings spec, model cards |
+| [`paper/`](paper/) | Technical report (LaTeX source, tables generated from `reports/`) |
 | [`tests/`](tests/) | Unit, leakage and parity tests |
 | [`legacy/`](legacy/) | The v0 audit |
 

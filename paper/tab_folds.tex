@@ -1,0 +1,14 @@
+\begin{table}[t]\centering\small
+\caption{Exploratory, computed after the results were committed; it cannot change the verdict. Per fold: training size, the fitted primary coefficients (per standard deviation of the feature) and the per-match log-loss of the base rate and the primary on that test season.}\label{tab:folds}
+\begin{tabular}{lccccccc}\toprule
+Data & Test season & $n_{\text{train}}$ & $\beta_{\text{xi}}$ & $\beta_{\text{toss}}$ & $n_{\text{test}}$ & LL base & LL primary\\\midrule
+WPL & 2024 & 22 & $-$0.32 & $-$0.90 & 22 & 0.764 & 1.008\\
+WPL & 2025 & 44 & $+$0.07 & $-$0.13 & 22 & 0.643 & 0.652\\
+WPL & 2026 & 66 & $+$0.09 & $-$0.02 & 22 & 0.701 & 0.708\\
+\multicolumn{8}{l}{\quad WPL, test seasons: stronger XI won 0.576 of 66 matches; mean $|\texttt{xi\_margin}|$ = 9.7 runs}\\\midrule
+India T20I & 2024 & 113 & $+$1.12 & $+$0.20 & 20 & 0.690 & 0.498\\
+India T20I & 2025 & 133 & $+$1.19 & $+$0.21 & 10 & 0.695 & 0.450\\
+India T20I & 2026 & 143 & $+$1.24 & $+$0.21 & 23 & 0.696 & 0.503\\
+\multicolumn{8}{l}{\quad India T20I, test seasons: stronger XI won 0.717 of 53 matches; mean $|\texttt{xi\_margin}|$ = 22.1 runs}\\
+\bottomrule\end{tabular}
+\end{table}

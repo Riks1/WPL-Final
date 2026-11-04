@@ -1,0 +1,10 @@
+\begin{table}[t]\centering\footnotesize\setlength{\tabcolsep}{4pt}
+\caption{Supporting analysis, India T20Is (53 test matches, 2024--2026; one no-result excluded). Never decides deployment. $^\dagger$The base rate is almost constant ($\approx 0.48$), so its calibration slope is not estimable in any useful sense.}\label{tab:india}
+\begin{tabular}{lccccccc}\toprule
+Model & Log-loss [95\% CI] & $\Delta$ vs base [95\% CI] & Brier & ECE & Cal.\ slope & Cal.\ int. & Acc.\\\midrule
+Base rate & 0.694 [0.681, 0.706] & 0 & 0.250 & 0.015 & $-$16.12$^\dagger$ & $+$0.06 & 0.509\\
+Primary & 0.491 [0.380, 0.611] & $-$0.203 [$-$0.312, $-$0.079] & 0.166 & 0.164 & $+$1.15 & $+$0.03 & 0.717\\
+S1 ($+$venue prior) & 0.510 [0.393, 0.643] & $-$0.184 [$-$0.302, $-$0.050] & 0.172 & 0.127 & $+$1.05 & $-$0.11 & 0.717\\
+S2 ($h=\infty$) & 0.493 [0.387, 0.607] & $-$0.201 [$-$0.306, $-$0.085] & 0.165 & 0.133 & $+$1.26 & $+$0.02 & 0.698\\
+\bottomrule\end{tabular}
+\end{table}
