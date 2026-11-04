@@ -3,10 +3,8 @@ import numpy as np
 import pandas as pd
 
 import wpl.data.entities as E
+from wpl.strength import BALLS, CAP, MIN_BOWLERS, bowling_shares, team_strength   # noqa: F401 (re-exported)
 
-BALLS = 120
-CAP = 24                                   # four overs
-MIN_BOWLERS = 5
 PRIOR_MATCHES = 20                         # venue bat-first prior strength
 
 
@@ -49,52 +47,31 @@ def usage_history(T, xi):
     out = pd.DataFrame({'mean_bat_pos': _asof_mean(bat.dropna(subset=['bat_pos']), rost, 'bat_pos'),
                         'mean_balls_bowled': _asof_mean(played, rost, 'legal_balls_bowled')})
     return out.reset_index()
-def bowling_shares(balls_hist):
-    """balls_hist: as-of mean legal balls bowled, in team-sheet order (NaN or 0 = no bowling history) -> shares (§10.3)."""
-    b = np.nan_to_num(np.asarray(balls_hist, float))
-    b = np.minimum(b, CAP)
-    has = b > 0
-    if has.sum() < MIN_BOWLERS:
-        extra = [i for i in range(len(b)) if not has[i]][:MIN_BOWLERS - has.sum()]
-        if extra:
-            b[extra] = min(CAP, max(BALLS - b.sum(), 0) / len(extra))
-    if b.sum() == 0:
-        return b
-    s = b / b.sum()
-    for _ in range(20):                               # cap at 24/120 and hand the excess to the others
-        over = s > CAP / BALLS + 1e-12
-        if not over.any():
-            break
-        excess = (s[over] - CAP / BALLS).sum()
-        s[over] = CAP / BALLS
-        free = (~over) & (s > 0)
-        if not free.any():
-            break
-        s[free] += excess * s[free] / s[free].sum()
-    return s
+def usage_overall(T):
+    """Mean batting position and mean legal balls bowled per match played, over every match in the snapshot:
+    the same definitions as usage_history, as of after the last match (the serving copy, D12)."""
+    u = E.build_usage(T)
+    bat = u.groupby(['match_id', 'player_id']).bat_pos.min().dropna()
+    bowl = u.groupby(['match_id', 'player_id']).legal_balls_bowled.sum()
+    played = pd.MultiIndex.from_frame(toss_xi(T)[['match_id', 'player_id']].drop_duplicates())
+    balls = bowl.reindex(played).fillna(0)
+    return pd.DataFrame({'mean_bat_pos': bat.groupby(level='player_id').mean(),
+                         'mean_balls_bowled': balls.groupby(level='player_id').mean()})
+
+
 def xi_strength(T, asof, lam, shares_by_pos, data_min=60):
     """One row per (match, team): batting and bowling value in runs, uncertainty and coverage (§10)."""
     xi = toss_xi(T)
     hist = usage_history(T, xi)
     d = (xi.merge(hist, on=['match_id', 'player_id'], how='left')
            .merge(asof.drop(columns=['date']), on=['match_id', 'player_id'], how='left'))
+    cols = ['sheet_order', 'mean_bat_pos', 'mean_balls_bowled', 'legal_faced', 'legal_bowled'] + \
+           [c + s for c in ('bat_runs', 'bat_dis', 'bowl_runs', 'bowl_wkt') for s in ('', '_sd')]
     rows = []
     for (mid, team), g in d.groupby(['match_id', 'team'], sort=False):
         g = g.sort_values('sheet_order')
-        order = g.mean_bat_pos.fillna(np.inf).to_numpy()          # no batting history -> last
-        rank = np.empty(len(g), int)
-        rank[np.lexsort((g.sheet_order.to_numpy(), order))] = np.arange(len(g))   # ties keep team-sheet order
-        bat_share = np.array([shares_by_pos[r] if r < 11 else 0.0 for r in rank])
-        bowl_share = bowling_shares(g.mean_balls_bowled.to_numpy())
-        bat_val = BALLS * np.sum(bat_share * (g.bat_runs - lam * g.bat_dis))
-        bowl_val = BALLS * np.sum(bowl_share * (lam * g.bowl_wkt - g.bowl_runs))
-        var = (np.sum(bat_share ** 2 * (g.bat_runs_sd ** 2 + lam ** 2 * g.bat_dis_sd ** 2))
-               + np.sum(bowl_share ** 2 * (g.bowl_runs_sd ** 2 + lam ** 2 * g.bowl_wkt_sd ** 2)))
-        supported = (g.legal_faced >= data_min) | (g.legal_bowled >= data_min)
-        rows.append({'match_id': mid, 'team': team, 'bat_value': float(bat_val), 'bowl_value': float(bowl_val),
-                     'strength': float(bat_val + bowl_val), 'strength_sd': float(BALLS * np.sqrt(var)),
-                     'coverage': float(supported.mean()), 'n_debut': int(((g.legal_faced == 0) & (g.legal_bowled == 0)).sum()),
-                     'xi_size': int(g.xi_size.iloc[0])})
+        t = team_strength({c: g[c].to_numpy(float) for c in cols}, lam, shares_by_pos, data_min)
+        rows.append({'match_id': mid, 'team': team, **t, 'xi_size': int(g.xi_size.iloc[0])})
     return pd.DataFrame(rows)
 
 

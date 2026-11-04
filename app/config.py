@@ -15,9 +15,16 @@ class Config:
     LOG_LEVEL = os.environ.get("LOG_LEVEL", "INFO")
     MODEL_DIR = os.environ.get("MODEL_DIR", str(BASE_DIR / "models"))
     MODEL_VERSION = os.environ.get("MODEL_VERSION", "v1")
+    LIVE_VERSION = os.environ.get("LIVE_VERSION", MODEL_VERSION)
+    PREMATCH_VERSION = os.environ.get("PREMATCH_VERSION", MODEL_VERSION)
+    RATINGS_VERSION = os.environ.get("RATINGS_VERSION", "v3")
+    INTERNAL_TOKEN = os.environ.get("INTERNAL_TOKEN")      # unset -> the internal ratings lookup does not exist
 
 
 class TestConfig(Config):
     """Used by the test suite: in-memory DB, real models."""
     TESTING = True
     SQLALCHEMY_DATABASE_URI = "sqlite:///:memory:"
+    LIVE_VERSION = PREMATCH_VERSION = "v1"
+    RATINGS_VERSION = "v3"
+    INTERNAL_TOKEN = "test-internal-token"

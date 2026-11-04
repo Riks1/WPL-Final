@@ -15,6 +15,8 @@ def health():
             "prematch_loaded": model_registry.prematch_model is not None,
             "live_loaded": model_registry.live_model is not None,
             "model_version": model_registry.version,
+            "versions": model_registry.versions,
+            "ratings_loaded": model_registry.ratings is not None,
             "timestamp": datetime.now(timezone.utc).isoformat(),
         }
     )

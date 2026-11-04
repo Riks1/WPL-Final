@@ -51,3 +51,24 @@ class LiveInputSchema(Schema):
             raise ValidationError(f"{legal} legal balls exceeds max_balls={data['max_balls']}", "balls")
         if sum(b["wickets"] for b in data["balls"]) > 10:
             raise ValidationError("more than 10 wickets", "balls")
+
+
+PLAYER_ID = validate.Regexp(r"^[0-9a-f]{8}$", error="must be a Cricsheet player id (8 hex characters)")
+
+
+class XiStrengthInputSchema(Schema):
+    """Two XIs as Cricsheet player ids, each in team-sheet order (the order sets ties in the batting order)."""
+
+    class Meta:
+        unknown = EXCLUDE
+
+    bat_first_xi = fields.List(fields.String(validate=PLAYER_ID), required=True, validate=validate.Length(equal=11))
+    chase_xi = fields.List(fields.String(validate=PLAYER_ID), required=True, validate=validate.Length(equal=11))
+    allow_unknown = fields.Boolean(load_default=False)   # true: unrated ids get the debutant prior
+
+    @validates_schema
+    def check_players(self, data, **kwargs):
+        both = data["bat_first_xi"] + data["chase_xi"]
+        dupes = sorted({p for p in both if both.count(p) > 1})
+        if dupes:
+            raise ValidationError(f"players listed more than once: {dupes}", "chase_xi")

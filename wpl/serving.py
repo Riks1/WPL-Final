@@ -11,6 +11,7 @@ import numpy as np
 from wpl import linear, parscore
 from wpl.live_features import state_from_history, terminal_prob
 from wpl.prematch_features import TeamHistory
+from wpl.strength import team_strength
 
 
 def load_bundle(path) -> dict:
@@ -41,9 +42,45 @@ def predict_live(bundle: dict, innings: int, deliveries: list[dict], max_balls: 
 
 
 def predict_prematch(bundle: dict, bat_first_team: str, chase_team: str, toss_winner: str) -> dict:
+    if 'history' not in bundle:                      # Stage 3 registry entry (v3): the base rate, no team features
+        return {'bat_first_win_prob': float(bundle['p_base']), 'features': {}}
     feats = TeamHistory(bundle['history']).features(bat_first_team, chase_team, int(toss_winner == bat_first_team))
     if bundle['family'] == 'base_rate':
         p = float(bundle['p_base'])
     else:
         p = float(linear.predict(bundle['params'], [[feats[f] for f in bundle['features']]])[0])
     return {'bat_first_win_prob': p, 'features': feats}
+
+
+def lookup_players(ratings: dict, ids: list[str], allow_unknown: bool = False) -> tuple[dict, list[str]]:
+    """Columns for team_strength, in the given (team-sheet) order. Unknown ids get the debutant prior only if
+    allowed; otherwise they are returned so the caller can refuse the request."""
+    fields, players, deb = ratings['fields'], ratings['players'], ratings['debutant']
+    unknown = [i for i in ids if i not in players]
+    if unknown and not allow_unknown:
+        return {}, unknown
+    cols = {f: [] for f in fields[1:]}
+    for i in ids:
+        if i in players:
+            for f, v in zip(fields[1:], players[i][1:]):
+                cols[f].append(np.nan if v is None else v)
+        else:                                            # debutant: prior ratings, no exposure, no usage
+            for f in fields[1:]:
+                cols[f].append(deb.get(f, 0.0 if f.startswith('legal') else np.nan))
+    cols['sheet_order'] = list(range(len(ids)))
+    return cols, unknown
+
+
+def predict_xi_strength(ratings: dict, bat_first_xi: list[str], chase_xi: list[str], allow_unknown: bool = False) -> dict:
+    """XI strength of both teams and the margin, with the same function the training pipeline uses (wpl.strength)."""
+    out, unknown = {}, []
+    for side, ids in (('bat_first', bat_first_xi), ('chase', chase_xi)):
+        cols, unk = lookup_players(ratings, ids, allow_unknown)
+        unknown += unk
+        if cols:
+            out[side] = team_strength(cols, ratings['lambda'], ratings['shares_by_pos'], ratings['data_min'])
+    if len(out) < 2:
+        raise KeyError(unknown)
+    return {**out, 'xi_margin': out['bat_first']['strength'] - out['chase']['strength'],
+            'xi_margin_sd': float(np.hypot(out['bat_first']['strength_sd'], out['chase']['strength_sd'])),
+            'unknown_players': unknown}

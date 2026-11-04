@@ -26,19 +26,23 @@ def create_app(config_class=Config):
     from app.routes.history import history_bp
     from app.routes.main import main_bp
     from app.routes.predict import predict_bp
+    from app.routes.xi import xi_bp
 
     app.register_blueprint(main_bp)
     app.register_blueprint(predict_bp)
     app.register_blueprint(health_bp)
     app.register_blueprint(history_bp)
     app.register_blueprint(cricapi_bp)
+    app.register_blueprint(xi_bp)
 
     with app.app_context():
         # Blueprints above import app.models (PredictionLog), which registers it
         # with db.metadata — that import MUST happen before create_all(), or the
         # table silently never gets created.
         db.create_all()
-        model_registry.load(model_dir=app.config["MODEL_DIR"], version=app.config["MODEL_VERSION"])
+        model_registry.load(model_dir=app.config["MODEL_DIR"], live_version=app.config["LIVE_VERSION"],
+                            prematch_version=app.config["PREMATCH_VERSION"],
+                            ratings_version=app.config["RATINGS_VERSION"])
 
     app.logger.info("Application startup complete (models ready: %s)", model_registry.is_ready)
     return app
