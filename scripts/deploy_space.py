@@ -37,15 +37,20 @@ def build_tree(src, out, sha, ref):
     return info
 
 
-def wait_for_build(api, space, timeout=1200, every=20):
-    """Poll the Space until it runs, or fail fast on a build or runtime error."""
-    t0 = time.time()
+def wait_for_build(api, space, timeout=1200, every=20, grace=120):
+    """Poll the Space until the new build runs. A failure state only counts once the Space has picked up the
+    upload (seen BUILDING or APP_STARTING) or after a grace period, because right after an upload the Space can
+    still report the state of the previous commit."""
+    t0, picked_up = time.time(), False
     while time.time() - t0 < timeout:
         stage = api.get_space_runtime(space).stage
-        print(f'  {int(time.time() - t0):4d}s  {stage}', flush=True)
-        if stage in FAILED:
-            raise SystemExit(f'Space failed: {stage}. See the build logs on the Space page.')
-        if stage == 'RUNNING' and time.time() - t0 > 60:     # give the rebuild time to start before trusting RUNNING
+        elapsed = time.time() - t0
+        print(f'  {int(elapsed):4d}s  {stage}', flush=True)
+        if stage in ('BUILDING', 'RUNNING_BUILDING', 'APP_STARTING'):
+            picked_up = True
+        if stage in FAILED and (picked_up or elapsed > grace):
+            raise SystemExit(f'Space failed: {stage}. See the logs on the Space page.')
+        if stage == 'RUNNING' and (picked_up or elapsed > 60):
             return stage
         time.sleep(every)
     raise SystemExit(f'Space did not reach RUNNING within {timeout}s')
