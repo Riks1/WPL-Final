@@ -1,13 +1,19 @@
+# Only what the API needs goes into the image (see Dockerfile): no history, data, tests, reports or v0 pickles.
 .git
-.github
-__pycache__
-*.pyc
 .env
-tests
-.pytest_cache
-instance
-logs
+*.env
+.github
 legacy
 data
+reports
+paper
 notebooks
-reports/stage1/test_predictions.csv.gz
+docs
+tests
+scripts
+instance
+logs
+**/__pycache__
+**/*.pyc
+.pytest_cache
+*.zip

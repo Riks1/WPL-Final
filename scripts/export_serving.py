@@ -15,6 +15,7 @@ import wpl.data.entities as E
 import wpl.data.parse as P
 import wpl.data.snapshots as S
 import wpl.xi as XI
+from scripts.build_ratings import library_versions
 from wpl.strength import RATING_COLS, team_strength
 
 ROOT = Path(S.ROOT)
@@ -73,7 +74,7 @@ def main(argv=None):
     debutant.update({c + '_sd': (params['sigma2'][c] / params['k'][c]) ** 0.5 for c in RATING_COLS})
     bundle = {'kind': 'ratings', 'version': 'v3', 'as_of': str(T['matches'].date.max().date()),
               'snapshot': a.snapshot, 'snapshot_sha256': build['sha256'],
-              'ratings_content_hash': build['content_hash'], 'h': params['h'], 'lambda': lam, 'data_min': 60,
+              'ratings_content_hash': build['content_hash'], 'libraries': library_versions(), 'h': params['h'], 'lambda': lam, 'data_min': 60,
               'shares_by_pos': shares, 'debutant': debutant, 'fields': FIELDS,
               'players': {pid: [clean(v) for v in row] for pid, row in zip(table.index, table.itertuples(index=False))}}
     (ROOT / 'models' / 'ratings_v3.json').write_text(json.dumps(bundle, separators=(',', ':')))

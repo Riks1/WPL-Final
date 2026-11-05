@@ -212,8 +212,11 @@ skill is hard to distinguish from luck at the ball level.
 
 \paragraph{Leakage tests.} The test suite checks that perturbing any future delivery leaves every earlier
 rating unchanged, that same-day matches are isolated, that a debutant receives exactly the prior, that the
-decay halves a ball's weight after $h$ years, and that the build is deterministic (the content hash of the
-ratings table, \code{1e5c4bd4\ldots}, reproduced exactly after a rebuild from scratch). Two leaks were caught
+decay halves a ball's weight after $h$ years, and that the build is deterministic: the content hash of the
+ratings table, \code{1e5c4bd4\ldots}, reproduced exactly after a rebuild from scratch in the same software
+environment. After a later library update a rebuild gave a different hash while every match feature agreed to
+within $1.4\times10^{-14}$ runs, so exact reproducibility holds per environment and builds now record their
+library versions. Two leaks were caught
 by these tests during development and fixed before any evaluation: $\sigma^2$ computed from the full data,
 and first-day matches predicted from their own outcomes.
 
@@ -286,10 +289,12 @@ Every reported number is produced by code in the repository from a hash-pinned s
 deployed artefact is plain JSON (no pickle) keyed to the snapshot hash and, for Stage~3, the ratings content
 hash. The test suite covers parsing edge cases, the leakage properties above, the evaluation harness
 (which reproduces Stage~1's live table to $10^{-12}$), and a parity fixture that requires the served API to
-reproduce the training notebook's probabilities on 200 real match states. The live model is served by a
-Flask API on a Hugging Face Space; Stage~3 deployment (a database-backed prediction log, staging and
-production environments, an XI-strength endpoint and monitoring) is in progress. Model cards~\citep{mitchell2019}
-record each deployment verdict with its evidence.
+reproduce the training notebook's probabilities on 200 real match states. The models are served by a Flask API
+(live, pre-match and XI-strength endpoints) that runs locally or in Docker, logs every prediction to SQLite or
+Postgres, keeps serving if the database is unavailable, and passes an end-to-end smoke test over HTTP. It is not
+publicly hosted: an earlier statement that it ran on a Hugging Face Space was wrong, as that Space was never
+successfully deployed. A demo notebook in the repository reproduces the figures in this report and can be run
+in a browser. Model cards~\citep{mitchell2019} record each deployment verdict with its evidence.
 
 \section{Limitations and the pre-registration record}\label{sec:limits}
 

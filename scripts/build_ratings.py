@@ -24,6 +24,15 @@ def jsonable(params):
     return {k: (None if isinstance(v, float) and not np.isfinite(v) else v) for k, v in params.items()}
 
 
+
+def library_versions():
+    """Exact reproducibility holds per software environment (a numpy/pandas update can move the last bit of a
+    float and so the content hash), so every build records what it ran on."""
+    import platform
+    import numpy, pandas, scipy, sklearn
+    return {'python': platform.python_version(), 'numpy': numpy.__version__, 'pandas': pandas.__version__,
+            'scipy': scipy.__version__, 'scikit-learn': sklearn.__version__}
+
 def main(argv=None):
     ap = argparse.ArgumentParser()
     ap.add_argument('--snapshot', required=True)
@@ -55,6 +64,7 @@ def main(argv=None):
         'params': jsonable(best), 'params_hinf': jsonable(p_inf),
         'lambda_runs_per_wicket': RT.lambda_runs_per_wicket(T, CUTOFF),
         'content_hash': RT.content_hash(asof), 'content_hash_hinf': RT.content_hash(asof_inf),
+        'libraries': library_versions(),
         'seconds': round(time.time() - t0, 1),
     }
     rep = Path(a.reports)
