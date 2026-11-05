@@ -1,12 +1,22 @@
 name: CI
 on:
   push:
-    branches: ['**']
-    tags: ['v*']
+    branches: ['**']               # version tags are tested by deploy.yml before they are deployed
   pull_request:
 jobs:
   test:
     runs-on: ubuntu-latest
+    services:
+      postgres:                        # a real Postgres, so the prediction-log tests run on every push
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: wpl_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/wpl_test
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5

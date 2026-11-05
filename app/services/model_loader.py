@@ -8,25 +8,35 @@ logger = logging.getLogger(__name__)
 
 
 class ModelRegistry:
-    """Loads the versioned JSON bundles written by step 8 of the training notebook, once, at startup.
+    """Loads the versioned JSON bundles once, at startup.
 
-    Files: <MODEL_DIR>/live_<version>.json, prematch_<version>.json, model_card.json.
-    MODEL_VERSION (env var) picks the version, so a rollback is a config change, not a code change.
+    Files: <MODEL_DIR>/live_<v>.json, prematch_<v>.json, ratings_<v>.json (optional), model_card.json.
+    Each model has its own version (LIVE_VERSION, PREMATCH_VERSION, RATINGS_VERSION env vars), so a rollback
+    or an upgrade of one model is a config change, not a code change.
     """
 
     def __init__(self):
         self.prematch_model = None
         self.live_model = None
+        self.ratings = None
         self.model_card = None
-        self.version = None
+        self.versions = {}
 
-    def load(self, model_dir="models", version="v1"):
+    @property
+    def version(self):
+        """Kept for the v1 API: the live model's version."""
+        return self.versions.get("live")
+
+    def load(self, model_dir="models", live_version="v1", prematch_version="v1", ratings_version=None):
         model_dir = Path(model_dir)
-        self.version = version
-        for attr, name in (("live_model", f"live_{version}.json"), ("prematch_model", f"prematch_{version}.json")):
+        self.versions = {"live": live_version, "prematch": prematch_version, "ratings": ratings_version}
+        files = [("live_model", f"live_{live_version}.json"), ("prematch_model", f"prematch_{prematch_version}.json")]
+        if ratings_version:
+            files.append(("ratings", f"ratings_{ratings_version}.json"))
+        for attr, name in files:
             try:
                 setattr(self, attr, load_bundle(model_dir / name))
-                logger.info("Loaded %s (family=%s)", name, getattr(self, attr)["family"])
+                logger.info("Loaded %s", name)
             except Exception:
                 setattr(self, attr, None)
                 logger.exception("Failed to load %s", name)
@@ -38,6 +48,7 @@ class ModelRegistry:
 
     @property
     def is_ready(self):
+        """Live and pre-match are required; the ratings only power /api/xi-strength."""
         return self.prematch_model is not None and self.live_model is not None
 
 

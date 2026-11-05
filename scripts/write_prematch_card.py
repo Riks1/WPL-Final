@@ -97,7 +97,7 @@ def card(b, results):
         f"- Snapshot `{m['snapshot']}` (sha256 {m['snapshot_sha256'][:16]}…); ratings content hash "
         f"{m['ratings_content_hash'][:16]}…; half-life h = {m['h']} years.",
         f"- Excluded no-results in WPL test seasons: {w['excluded_no_result'] or 'none'}.",
-        '- Rebuilt from scratch after a runtime reset, the ratings reproduced the same content hash.',
+        '- Rebuilt from scratch in the same software environment, the ratings reproduced the same content hash. After a later Colab library update a rebuild gave a different hash (`566af77f…`, the build behind the served `models/ratings_v3.json`) with every match feature within 1.4e-14 runs of the evaluated build: exact reproducibility holds per software environment, and build summaries now record library versions.',
         '## Limitations',
         '- WPL has 22 matches a season: the evaluation can only detect log-loss gains of about 0.07 or more.',
         '- WPL-only training (pooled training across competitions is Stage 4).',

@@ -14,7 +14,7 @@ class PredictionLog(db.Model):
     response_payload = db.Column(db.JSON, nullable=False)
     latency_ms = db.Column(db.Float, nullable=True)
     created_at = db.Column(
-        db.DateTime, default=lambda: datetime.now(timezone.utc), index=True
+        db.DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), index=True
     )
 
     def to_dict(self):

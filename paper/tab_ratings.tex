@@ -1,0 +1,15 @@
+\begin{table}[t]\centering\small
+\caption{Ratings hyperparameters, all estimated on balls before 2024-01-01. Top: half-life $h$ chosen by one-step-ahead MSE of batting runs per ball on 2022--2023 (166,369 balls). Bottom: empirical Bayes prior mean $\mu_0$ (debutant prior), residual variance $\sigma^2$ and prior strength $k=\sigma^2/\tau^2$ (in balls).}\label{tab:ratings}
+\begin{tabular}{lcccc}\toprule
+Half-life $h$ (years) & 1 & 2 & 4 & $\infty$\\
+MSE & 1.72912 & 1.72775 & \textbf{1.72738} & 1.72779\\\bottomrule\end{tabular}
+
+\vspace{6pt}
+\begin{tabular}{lccc}\toprule
+Component & $\mu_0$ & $\sigma^2$ & $k$\\\midrule
+Batting runs & $-$0.1221 & 1.6984 & 73.3\\
+Batting dismissal & $+$0.0102 & 0.0483 & 129.2\\
+Bowling runs & $+$0.0387 & 1.6552 & 77.2\\
+Bowling wicket & $-$0.0024 & 0.0434 & 2123.5\\
+\bottomrule\end{tabular}
+\end{table}

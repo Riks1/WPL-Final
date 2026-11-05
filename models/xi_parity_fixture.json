@@ -1,0 +1,405 @@
+{
+ "ratings_version": "v3",
+ "cases": [
+  {
+   "match_id": "1548899",
+   "team": "India",
+   "xi": [
+    "d8f59089",
+    "5d2eda89",
+    "45a13dcf",
+    "53cd8da6",
+    "201fef33",
+    "bd8689b0",
+    "721e0199",
+    "34b8cd68",
+    "583ce32c",
+    "4d622fee",
+    "5f22ccae"
+   ],
+   "expected": {
+    "bat_value": 9.56072471996408,
+    "bowl_value": 4.636590202020631,
+    "strength": 14.197314921984711,
+    "strength_sd": 8.892680196540734,
+    "coverage": 0.9090909090909091,
+    "n_debut": 0
+   }
+  },
+  {
+   "match_id": "1548899",
+   "team": "Pakistan",
+   "xi": [
+    "86fdf668",
+    "adb2f55e",
+    "9ff1e91e",
+    "e15f4fa4",
+    "f19c8dc0",
+    "ea9c54de",
+    "4357f6f8",
+    "6ee11109",
+    "0d56e9a5",
+    "c981d3c2",
+    "53bb50f0"
+   ],
+   "expected": {
+    "bat_value": -26.38241325423732,
+    "bowl_value": -4.010407247887723,
+    "strength": -30.392820502125044,
+    "strength_sd": 9.5243322344725,
+    "coverage": 1.0,
+    "n_debut": 0
+   }
+  },
+  {
+   "match_id": "1548903",
+   "team": "Bangladesh",
+   "xi": [
+    "f2670a3d",
+    "e6f05a84",
+    "94de63bf",
+    "3827f6a2",
+    "89895ae1",
+    "84fdd3cf",
+    "558cdd64",
+    "aaf037b1",
+    "66078174",
+    "a50797a4",
+    "fb0c0bcc"
+   ],
+   "expected": {
+    "bat_value": -24.118759082663775,
+    "bowl_value": -2.758690799192095,
+    "strength": -26.87744988185587,
+    "strength_sd": 8.66449967541194,
+    "coverage": 1.0,
+    "n_debut": 0
+   }
+  },
+  {
+   "match_id": "1548903",
+   "team": "India",
+   "xi": [
+    "5d2eda89",
+    "d8f59089",
+    "45a13dcf",
+    "53cd8da6",
+    "721e0199",
+    "201fef33",
+    "bd8689b0",
+    "34b8cd68",
+    "583ce32c",
+    "4d622fee",
+    "5f22ccae"
+   ],
+   "expected": {
+    "bat_value": 9.56072471996408,
+    "bowl_value": 4.636590202020631,
+    "strength": 14.197314921984711,
+    "strength_sd": 8.892680196540734,
+    "coverage": 0.9090909090909091,
+    "n_debut": 0
+   }
+  },
+  {
+   "match_id": "1548905",
+   "team": "India",
+   "xi": [
+    "5d2eda89",
+    "d8f59089",
+    "53cd8da6",
+    "721e0199",
+    "201fef33",
+    "bd8689b0",
+    "2a5ed897",
+    "34b8cd68",
+    "583ce32c",
+    "4d622fee",
+    "5f22ccae"
+   ],
+   "expected": {
+    "bat_value": 9.705208246859588,
+    "bowl_value": 4.636590202020631,
+    "strength": 14.341798448880219,
+    "strength_sd": 8.048838049314545,
+    "coverage": 1.0,
+    "n_debut": 0
+   }
+  },
+  {
+   "match_id": "1548905",
+   "team": "Sri Lanka",
+   "xi": [
+    "a2c23f31",
+    "ac56b5a7",
+    "9e866b59",
+    "85021bcd",
+    "f0b4294e",
+    "c34a15e6",
+    "53068b45",
+    "ec691a5b",
+    "b55fb828",
+    "843e067e",
+    "369b8bfc"
+   ],
+   "expected": {
+    "bat_value": -13.11877745562041,
+    "bowl_value": -6.354867828448155,
+    "strength": -19.473645284068567,
+    "strength_sd": 8.025387082909814,
+    "coverage": 1.0,
+    "n_debut": 0
+   }
+  },
+  {
+   "match_id": "1550479",
+   "team": "Bangladesh",
+   "xi": [
+    "f2670a3d",
+    "e6f05a84",
+    "94de63bf",
+    "3827f6a2",
+    "89895ae1",
+    "84fdd3cf",
+    "66078174",
+    "aaf037b1",
+    "fb0c0bcc",
+    "a50797a4",
+    "a6412417"
+   ],
+   "expected": {
+    "bat_value": -24.355535767000372,
+    "bowl_value": -2.8702856558558807,
+    "strength": -27.225821422856253,
+    "strength_sd": 8.818228567605196,
+    "coverage": 1.0,
+    "n_debut": 0
+   }
+  },
+  {
+   "match_id": "1550479",
+   "team": "India",
+   "xi": [
+    "5d2eda89",
+    "d8f59089",
+    "2a5ed897",
+    "53cd8da6",
+    "721e0199",
+    "bd8689b0",
+    "201fef33",
+    "33946d69",
+    "583ce32c",
+    "5f22ccae",
+    "4d622fee"
+   ],
+   "expected": {
+    "bat_value": 9.477394934663234,
+    "bowl_value": 6.24453467869426,
+    "strength": 15.721929613357494,
+    "strength_sd": 7.807020420690235,
+    "coverage": 1.0,
+    "n_debut": 0
+   }
+  },
+  {
+   "match_id": "1550481",
+   "team": "India",
+   "xi": [
+    "d8f59089",
+    "5d2eda89",
+    "53cd8da6",
+    "721e0199",
+    "bd8689b0",
+    "2a5ed897",
+    "201fef33",
+    "33946d69",
+    "583ce32c",
+    "5f22ccae",
+    "4d622fee"
+   ],
+   "expected": {
+    "bat_value": 9.477394934663234,
+    "bowl_value": 6.24453467869426,
+    "strength": 15.721929613357494,
+    "strength_sd": 7.807020420690235,
+    "coverage": 1.0,
+    "n_debut": 0
+   }
+  },
+  {
+   "match_id": "1550481",
+   "team": "Sri Lanka",
+   "xi": [
+    "ac56b5a7",
+    "a2c23f31",
+    "53068b45",
+    "c34a15e6",
+    "85021bcd",
+    "f8e27d4a",
+    "ec691a5b",
+    "2fa916b3",
+    "b55fb828",
+    "843e067e",
+    "369b8bfc"
+   ],
+   "expected": {
+    "bat_value": -15.004456989969828,
+    "bowl_value": -8.600106016378088,
+    "strength": -23.604563006347917,
+    "strength_sd": 8.685737402643866,
+    "coverage": 1.0,
+    "n_debut": 0
+   }
+  },
+  {
+   "match_id": "1535652",
+   "team": "India",
+   "xi": [
+    "5d2eda89",
+    "d8f59089",
+    "9b3b9987",
+    "53cd8da6",
+    "f903aec2",
+    "201fef33",
+    "721e0199",
+    "eadc8924",
+    "583ce32c",
+    "5f22ccae",
+    "4d622fee"
+   ],
+   "expected": {
+    "bat_value": 10.357385730510018,
+    "bowl_value": 3.118543397165058,
+    "strength": 13.475929127675077,
+    "strength_sd": 7.653258812254771,
+    "coverage": 1.0,
+    "n_debut": 0
+   }
+  },
+  {
+   "match_id": "1535652",
+   "team": "Zimbabwe",
+   "xi": [
+    "8d25271a",
+    "8a522c6c",
+    "6657b319",
+    "91d9613e",
+    "9c2e3040",
+    "bb411d1e",
+    "99c86133",
+    "36dfa62e",
+    "c0dc015b",
+    "df15677b",
+    "d9fb6ede"
+   ],
+   "expected": {
+    "bat_value": -11.285781937972533,
+    "bowl_value": -21.305151450826763,
+    "strength": -32.5909333887993,
+    "strength_sd": 8.269284963536435,
+    "coverage": 0.9090909090909091,
+    "n_debut": 0
+   }
+  },
+  {
+   "match_id": "1535653",
+   "team": "India",
+   "xi": [
+    "d8f59089",
+    "5d2eda89",
+    "9b3b9987",
+    "53cd8da6",
+    "f903aec2",
+    "201fef33",
+    "721e0199",
+    "eadc8924",
+    "583ce32c",
+    "5f22ccae",
+    "4d622fee"
+   ],
+   "expected": {
+    "bat_value": 10.357385730510018,
+    "bowl_value": 3.118543397165058,
+    "strength": 13.475929127675077,
+    "strength_sd": 7.653258812254771,
+    "coverage": 1.0,
+    "n_debut": 0
+   }
+  },
+  {
+   "match_id": "1535653",
+   "team": "Zimbabwe",
+   "xi": [
+    "8d25271a",
+    "8a522c6c",
+    "99c86133",
+    "91d9613e",
+    "36dfa62e",
+    "9c2e3040",
+    "6657b319",
+    "bb411d1e",
+    "c0dc015b",
+    "df15677b",
+    "d9fb6ede"
+   ],
+   "expected": {
+    "bat_value": -11.285781937972533,
+    "bowl_value": -21.305151450826763,
+    "strength": -32.5909333887993,
+    "strength_sd": 8.269284963536435,
+    "coverage": 0.9090909090909091,
+    "n_debut": 0
+   }
+  },
+  {
+   "match_id": "1535654",
+   "team": "India",
+   "xi": [
+    "d8f59089",
+    "9b3b9987",
+    "f903aec2",
+    "53cd8da6",
+    "721e0199",
+    "201fef33",
+    "eadc8924",
+    "34b8cd68",
+    "4d622fee",
+    "5d2eda89",
+    "5f22ccae"
+   ],
+   "expected": {
+    "bat_value": 9.665772899646917,
+    "bowl_value": -3.6582665966095282,
+    "strength": 6.007506303037389,
+    "strength_sd": 7.813182746686579,
+    "coverage": 1.0,
+    "n_debut": 0
+   }
+  },
+  {
+   "match_id": "1535654",
+   "team": "Zimbabwe",
+   "xi": [
+    "8d25271a",
+    "91d9613e",
+    "6657b319",
+    "8a522c6c",
+    "9c2e3040",
+    "99c86133",
+    "cca8bdca",
+    "df15677b",
+    "edf62a25",
+    "36dfa62e",
+    "5f311f1a"
+   ],
+   "expected": {
+    "bat_value": -11.560238677446831,
+    "bowl_value": -22.209256736462805,
+    "strength": -33.76949541390964,
+    "strength_sd": 8.027500491934765,
+    "coverage": 1.0,
+    "n_debut": 0
+   }
+  }
+ ]
+}

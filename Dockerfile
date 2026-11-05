@@ -6,4 +6,4 @@ COPY . .
 RUN mkdir -p instance logs
 ENV PYTHONUNBUFFERED=1 PORT=7860
 EXPOSE 7860
-CMD gunicorn --bind 0.0.0.0:${PORT} --workers 2 --timeout 60 run:app
+CMD gunicorn --bind 0.0.0.0:${PORT} --workers 2 --timeout 60 --preload run:app

@@ -7,10 +7,19 @@
 ![Models: JSON, no pickle](https://img.shields.io/badge/models-JSON%2C%20no%20pickle-informative)
 [![License](https://img.shields.io/github/license/Riks1/WPL-Final)](LICENSE)
 
-Ball-by-ball and pre-match win probability for women's T20 franchise cricket, served by a Flask API.
+Ball-by-ball and pre-match win probability for women's T20 franchise cricket, with a tested Flask API.
+**[Demo notebook](notebooks/demo.ipynb)** (runs in your browser:
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Riks1/WPL-Final/blob/main/notebooks/demo.ipynb))
+· **[Technical report (PDF)](paper/wpl_stage1-3_report.pdf)**
 The WPL plays 22 matches a season, so the hard part is not fitting a model but not fooling yourself:
 every model here is scored on held-out seasons, every interval comes from a bootstrap over matches,
 and every deployment decision follows a rule written down before the final run.
+
+![Live win probability, 2025 WPL Final](docs/img/wpl2025_final_live_wp.png)
+
+*The 2025 WPL Final, ball by ball, from the par-score model with the 2025 season held out (it never saw this
+match). Mumbai Indians' 149 looked below par, so Delhi Capitals started the chase as 59% favourites; their early
+wickets turned it. Reproduced in the [demo notebook](notebooks/demo.ipynb).*
 
 ## Results at a glance
 
@@ -68,31 +77,44 @@ received unscaled inputs. Stage 1 rebuilt everything from that audit.
 |---|---|---|
 | 1 | Audit of v0; live par-score model; parity-tested API; CI | ✅ [`v1`](https://github.com/Riks1/WPL-Final/tree/v1) |
 | 2 | Women's T20 data layer: snapshots, parser, entities, validation | ✅ [`v2`](https://github.com/Riks1/WPL-Final/tree/v2) |
-| 3 | As-of player ratings, XI strength, pre-specified pre-match evaluation | ✅ evaluation · 🚧 deployment (Postgres log, staging/prod, monitoring) |
+| 3 | As-of player ratings, XI strength, pre-specified pre-match evaluation, Postgres-ready API | ✅ [`v3`](https://github.com/Riks1/WPL-Final/tree/v3) |
 | 4 | Pooled training across competitions; prospective test on WPL 2027 | Planned |
 | 5–10 | From prediction to decisions (team selection, match strategy) | Planned |
 
-## API
+## API (run it locally)
+
+```bash
+docker build -t wpl-api . && docker run -p 7860:7860 -e PREMATCH_VERSION=v3 wpl-api
+python -m scripts.smoke_test --url http://localhost:7860 --expect-sha local      # 6 end-to-end checks
+```
+Without Docker: `pip install -r requirements.txt && PREMATCH_VERSION=v3 python run.py` (port 5000).
+Predictions are logged to SQLite by default, or to Postgres when `DATABASE_URL` is set; the API keeps serving if the
+database is down.
 
 | Endpoint | Method | What it returns |
 |---|---|---|
 | `/api/live-predict` | POST | Win probability from the ball history of the current innings |
-| `/api/prematch-predict` | POST | After the toss, before ball 1 (currently the base rate, and the response says so) |
+| `/api/prematch-predict` | POST | After the toss, before ball 1 (the base rate, and the response says why) |
+| `/api/xi-strength` | POST | Two XIs (Cricsheet ids) rated in runs, with the margin and its uncertainty (not a win probability) |
 | `/api/model-info` | GET | Model card: data hash, training date, library versions, deployment decision |
 | `/api/history` | GET | Recent logged predictions |
 | `/api/health` | GET | Model load status |
 
 ```bash
-curl -X POST <api-url>/api/live-predict -H 'Content-Type: application/json' \
+curl -X POST http://localhost:7860/api/live-predict -H 'Content-Type: application/json' \
   -d '{"innings": 2, "target": 166, "balls": [{"runs": 4, "legal": true, "wickets": 0}, {"runs": 1, "legal": false, "wickets": 0}]}'
 ```
 `runs` is the total off the delivery including extras; `legal` is false for wides and no-balls; `wickets` counts
 dismissals. The server derives every feature with the same code as training.
 
+The API is not publicly hosted. Earlier versions of this README pointed to a Hugging Face Space; that Space was
+never successfully deployed (free Docker hosting there now needs a paid plan), so the demo notebook is the way to
+try the models.
+
 ## Reproduce
 
 ```bash
-pip install -r requirements-dev.txt && pytest -q          # 93 tests: parsing, leakage, evaluation, API parity
+pip install -r requirements-dev.txt && pytest -q          # parsing, leakage, evaluation, API parity, Postgres
 
 SNAP=all_female_json_20261025b.zip                        # fetched from Hugging Face and hash-checked
 python -m scripts.build_stage2 --snapshot $SNAP --wpl-snapshot wpl_json_20261025.zip
@@ -102,7 +124,10 @@ python -m scripts.evaluate_prematch --snapshot $SNAP
 python -m scripts.write_prematch_card --snapshot $SNAP
 ```
 Stage 1 training and evaluation: [`notebooks/stage1_training.ipynb`](notebooks/stage1_training.ipynb).
-Rebuilt from scratch, the ratings reproduce the same content hash (`1e5c4bd4…`).
+Rebuilt from scratch in the same software environment, the ratings reproduce the same content hash
+(`1e5c4bd4…`, the build that was evaluated). After a Colab library update the hash changed (`566af77f…`, the
+build behind `models/ratings_v3.json`) while every feature agreed to within 1.4×10⁻¹⁴ runs: exact
+reproducibility holds per environment, so build summaries now record library versions.
 
 ## Repository map
 
@@ -114,6 +139,8 @@ Rebuilt from scratch, the ratings reproduce the same content hash (`1e5c4bd4…`
 | [`models/`](models/) | Served models as JSON, model card, parity fixture |
 | [`reports/`](reports/) | Every reported number, by stage |
 | [`docs/`](docs/) | Pre-registration, ratings spec, model cards |
+| [`paper/`](paper/) | Technical report (LaTeX source, tables generated from `reports/`) |
+| [`notebooks/`](notebooks/) | `demo.ipynb` (start here) and the Stage 1 training notebook |
 | [`tests/`](tests/) | Unit, leakage and parity tests |
 | [`legacy/`](legacy/) | The v0 audit |
 
