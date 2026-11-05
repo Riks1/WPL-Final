@@ -7,7 +7,7 @@ from flask import Blueprint, current_app, jsonify
 from app.services.model_loader import model_registry
 
 health_bp = Blueprint("health", __name__, url_prefix="/api")
-BUILD_FILE = Path(__file__).resolve().parents[2] / "build_info.json"     # written by scripts/deploy_space.py
+BUILD_FILE = Path(__file__).resolve().parents[2] / "build_info.json"     # optional, written by a deploy pipeline
 BUILD = json.loads(BUILD_FILE.read_text()) if BUILD_FILE.exists() else {"sha": "local", "ref": "local"}
 
 

@@ -1,6 +1,6 @@
-"""Phase 3.5d (D14): check a deployed build over HTTP, the way a user would call it.
+"""Check a running API over HTTP, the way a user would call it (e.g. after `docker run`).
 
-    python -m scripts.smoke_test --url https://riksss-wpl-win-probability.hf.space --expect-sha <commit>
+    python -m scripts.smoke_test --url http://localhost:7860 --expect-sha local
 
 1. Waits until /api/health reports the expected commit (so the old build answering cannot pass the test).
 2. Replays live cases from models/parity_fixture.json and XI cases from models/xi_parity_fixture.json against the
@@ -87,8 +87,8 @@ def main(argv=None):
     results.append(check('invalid input is rejected with 400', bad.status_code == 400, str(bad.status_code)))
 
     lookup = requests.get(f"{url}/api/ratings/{bf['xi'][0]}", headers=HEADERS, timeout=30)
-    results.append(check('ratings lookup refuses a request without the token (401)', lookup.status_code == 401,
-                         f'{lookup.status_code} (404 means INTERNAL_TOKEN is not set on the Space)'))
+    results.append(check('ratings lookup is not open (401 without the token, or 404 when no token is configured)',
+                         lookup.status_code in (401, 404), str(lookup.status_code)))
 
     hist = requests.get(f'{url}/api/history?limit=100', headers=HEADERS, timeout=30).json()
     logged = sum(p['endpoint'].startswith('smoke/') for p in hist.get('predictions', []))
