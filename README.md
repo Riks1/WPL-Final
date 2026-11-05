@@ -11,17 +11,12 @@ Who's going to win this match, and how sure should we be? This project answers t
 cricket, both **before the first ball** and **ball by ball** as the game unfolds, and serves the answers through a
 tested Flask API.
 
-**▶ Try it in your browser:** [Demo notebook](notebooks/demo.ipynb)
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Riks1/WPL-Final/blob/main/notebooks/demo.ipynb)
-&nbsp;·&nbsp; **📄 Read the details:** [Technical report (PDF)](paper/wpl_stage1-3_report.pdf)
-&nbsp;·&nbsp; **🗂 Model card:** [pre-match v3](docs/stage3/MODEL_CARD_prematch_v3.md)
 
 ![Live win probability, 2025 WPL Final](docs/img/wpl2025_final_live_wp.png)
 
 *The 2025 WPL Final, ball by ball. This curve comes from the par-score model with the whole 2025 season held out,
 so it had never seen this match. Mumbai Indians' 149 looked below par, and Delhi Capitals began the chase as 59%
-favourites. Then their early wickets turned the game. You can reproduce this chart in the
-[demo notebook](notebooks/demo.ipynb).*
+favourites. Then their early wickets turned the game. 
 
 ---
 
@@ -64,8 +59,7 @@ bootstrap confidence interval over matches. A negative Δ means the model beats 
   fitted on only 22–66 matches, and one 22-match training fold even learned the wrong sign.
 
 Fixing that is the next stage's job: pool training data across competitions, then run a prospective test on
-WPL 2027. Full details are in the [model card](docs/stage3/MODEL_CARD_prematch_v3.md).
-
+WPL 2027. 
 ---
 
 ## How it works
@@ -130,8 +124,7 @@ Stage 1 rebuilt everything from that audit, and the lessons from it shaped every
 ## Run the API locally
 
 > **Heads-up:** the API is not publicly hosted. Earlier versions of this README pointed to a Hugging Face Space,
-> but that Space was never successfully deployed (free Docker hosting there now needs a paid plan). The
-> [demo notebook](notebooks/demo.ipynb) is the easiest way to try the models.
+> but that Space hasn't been fully deployed 
 
 **With Docker:**
 
@@ -190,14 +183,6 @@ python -m scripts.evaluate_prematch --snapshot $SNAP
 python -m scripts.write_prematch_card --snapshot $SNAP
 ```
 
-Stage 1 training and evaluation live in [`notebooks/stage1_training.ipynb`](notebooks/stage1_training.ipynb).
-
-**A note on exact reproducibility.** Rebuilt from scratch in the same software environment, the ratings reproduce
-the same content hash (`1e5c4bd4…`, the build that was evaluated). After a Colab library update, the hash changed
-(`566af77f…`, the build behind `models/ratings_v3.json`), even though every feature agreed to within 1.4×10⁻¹⁴ runs.
-In other words, exact reproducibility holds *per environment*, so build summaries now record library versions.
-
----
 
 ## Repository map
 
